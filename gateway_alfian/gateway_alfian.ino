@@ -3,14 +3,15 @@
 #include <RH_RF95.h>
 #include <RHDatagram.h>
 #include <stdio.h>
-#define RFM95_CS 10
-#define RFM95_RST 9
-#define RFM95_INT 2
+//#define RFM95_CS 10
+//#define RFM95_RST 9
+//#define RFM95_INT 2
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 433.0
 #define gtw_addr 9
 // Singleton instance of the radio driver
-RH_RF95 rf95(RFM95_CS, RFM95_INT);
+//RH_RF95 rf95(RFM95_CS, RFM95_INT);
+RH_RF95 rf95;
 RHDatagram kurir(rf95, gtw_addr);
 uint32_t displayTimer = 0;
 struct broad {
@@ -33,17 +34,17 @@ struct nodes avail[10] = {};
 struct waktu w[10] = {};
 
 void setup() {
-  pinMode(RFM95_RST, OUTPUT);
-  digitalWrite(RFM95_RST, HIGH);
-  //while (!Serial);
+//  pinMode(RFM95_RST, OUTPUT);
+//  digitalWrite(RFM95_RST, HIGH);
+  while (!Serial);
   Serial.begin(9600);
   delay(100);
-  Serial.println("Arduino LoRa TX Test!");
+//  Serial.println("Arduino LoRa TX Test!");
   // manual reset
-  digitalWrite(RFM95_RST, LOW);
-  delay(10);
-  digitalWrite(RFM95_RST, HIGH);
-  delay(10);
+//  digitalWrite(RFM95_RST, LOW);
+//  delay(10);
+//  digitalWrite(RFM95_RST, HIGH);
+//  delay(10);
   while (!kurir.init()) {
     Serial.println("kurir init failed");
     while (1);

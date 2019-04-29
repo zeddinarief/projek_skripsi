@@ -13,7 +13,8 @@
 #define dhtPin 3 // Use d3 pin to connect the data line of DHT11, it is up to you
 //DHT dht11 (dhtPin,dhtType);
 // Singleton instance of the radio driver
-RH_RF95 rf95(RFM95_CS, RFM95_INT);
+//RH_RF95 rf95(RFM95_CS, RFM95_INT);
+RH_RF95 rf95;
 RHDatagram kurir(rf95, node_addr);
 // Blinky on receipt
 #define LED 13
@@ -28,19 +29,19 @@ struct dataSet
 void setup() {
   // put your setup code here, to run once:
 //  dht11.begin();
-  pinMode(LED, OUTPUT);
-  pinMode(RFM95_RST, OUTPUT);
-  digitalWrite(RFM95_RST, HIGH);
+//  pinMode(LED, OUTPUT);
+//  pinMode(RFM95_RST, OUTPUT);
+//  digitalWrite(RFM95_RST, HIGH);
   
   while (!Serial);
   Serial.begin(9600);
   delay(100);
   Serial.println("Lora Node Sensor Humidity and Temperature\n\n");
   // manual reset
-  digitalWrite(RFM95_RST, LOW);
-  delay(10);
-  digitalWrite(RFM95_RST, HIGH);
-  delay(10);
+//  digitalWrite(RFM95_RST, LOW);
+//  delay(10);
+//  digitalWrite(RFM95_RST, HIGH);
+//  delay(10);
   while (!rf95.init()) {
     Serial.println("LoRa radio init failed");
     while (1);
@@ -77,8 +78,8 @@ void loop() {
         struct dataSet data;
         data.ack = 201 ;
         data.id = node_addr ; //Device ID / sensor node
-        data.hum = "100"; // store humidity data
-        data.temp = "20";// store temperature data
+        data.hum = 100; // store humidity data
+        data.temp = 20;// store temperature data
         kurir.setHeaderFrom(node_addr);
         kurir.sendto((uint8_t *) &data, sizeof(struct dataSet), auth.gtwAddr); // Send out Ack + ID + Sensor data to LoRa gateway
         kurir.waitPacketSent();
@@ -86,10 +87,10 @@ void loop() {
         Serial.println("Sent a reply");
         digitalWrite(LED, LOW);
         Serial.print("Current humidity = ");
-        Serial.print((uint8_t)"100", DEC);
+        Serial.print((uint8_t)100, DEC);
         Serial.print("% ");
         Serial.print("temperature = ");
-        Serial.print((uint8_t) "20", DEC);
+        Serial.print((uint8_t)20, DEC);
         Serial.println(" C ");
       } else {
         Serial.println("gateway belum diketahui");
