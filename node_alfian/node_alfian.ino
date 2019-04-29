@@ -74,11 +74,12 @@ void loop() {
       {
         digitalWrite(LED, HIGH);
         // RH_RF95::printBuffer("Received: ", buf, len);
+        uint8_t no = 0;
         Serial.println("Got: true gateway");
         struct dataSet data;
         data.ack = 201 ;
         data.id = node_addr ; //Device ID / sensor node
-        data.hum = 100; // store humidity data
+        data.hum = no; // store humidity data
         data.temp = 20;// store temperature data
         kurir.setHeaderFrom(node_addr);
         kurir.sendto((uint8_t *) &data, sizeof(struct dataSet), auth.gtwAddr); // Send out Ack + ID + Sensor data to LoRa gateway
@@ -92,6 +93,7 @@ void loop() {
         Serial.print("temperature = ");
         Serial.print((uint8_t)20, DEC);
         Serial.println(" C ");
+        no++;
       } else {
         Serial.println("gateway belum diketahui");
       }

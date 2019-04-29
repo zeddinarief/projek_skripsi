@@ -71,14 +71,14 @@ void loop() {
     // Send a message to node
     struct broad auth;
     auth.gtwAddr = gtw_addr;
-    auth.cons = 14;
+    auth.cons = 13;
     rf95.send((uint8_t *) &auth, sizeof(struct broad));
   }
   // Now wait for a reply
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
-  Serial.println("Waiting for reply...");
-  if (kurir.waitAvailableTimeout(1000))
+  Serial.println("Waiting for reply..."); 
+  if (kurir.waitAvailableTimeout(5000))
   {
     // Should be a reply message for us now
     // Serial.println(buf[0]);
