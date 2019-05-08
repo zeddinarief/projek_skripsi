@@ -1,38 +1,39 @@
-//NODE
+//GATEWAY
 #include <SPI.h>
 #include <RH_RF95.h>
 #include <RHDatagram.h>
-//#include <DHT.h>
-//#define dhtType DHT11
-#define RFM95_CS 10
-#define RFM95_RST 9
-#define RFM95_INT 2
+#include <stdio.h>
+//#define RFM95_CS 10
+//#define RFM95_RST 9
+//#define RFM95_INT 2
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 433.0
-#define node_addr 5
-#define dhtPin 3 // Use d3 pin to connect the data line of DHT11, it is up to you
-//DHT dht11 (dhtPin,dhtType);
+#define gtw_addr 9
 // Singleton instance of the radio driver
 //RH_RF95 rf95(RFM95_CS, RFM95_INT);
 RH_RF95 rf95;
-RHDatagram kurir(rf95, node_addr);
-// Blinky on receipt
-#define LED 13
+RHDatagram kurir(rf95, gtw_addr);
+uint32_t displayTimer = 0;
 struct broad {
-  uint8_t gtwAddr,cons;
+  uint8_t gtwAddr, cons;
 };
 struct dataSet
 {
-  uint8_t ack, id, temp, hum;
+  uint8_t ack;
+  uint8_t id;
+  uint8_t temp;
+  uint8_t hum;
 };
-uint8_t no = 0;
+struct nodes {
+  uint8_t addr;
+};
+struct waktu {
+  unsigned long t;
+};
+struct nodes avail[10] = {};
+struct waktu w[10] = {};
+
 void setup() {
-  // put your setup code here, to run once:
-//  dht11.begin();
-//  pinMode(LED, OUTPUT);
-//  pinMode(RFM95_RST, OUTPUT);
-//  digitalWrite(RFM95_RST, HIGH);
-  
   while (!Serial);
   Serial.begin(9600);
   delay(100);
@@ -58,6 +59,7 @@ void setup() {
 }
 
 void loop() {
+  // put your main code here, to run repeatedly:
   if (kurir.available())
   {
     Serial.println("available message");
@@ -67,33 +69,34 @@ void loop() {
     uint8_t from;
     Serial.println("kurir masuk");
     struct broad auth;
-    if (kurir.recvfrom((uint8_t*) &auth, &len, &from))
+    struct dataSet data;
+    if (kurir.recvfrom((uint8_t*) &data, &len, &from))
     {
       // RH_RF95::printBuffer("Received: ", buf, len);
-      if (auth.cons == 13)// auth from gateway
+      if (from == 4)// auth from gateway
       {
-        digitalWrite(LED, HIGH);
+//        digitalWrite(LED, HIGH);
         // RH_RF95::printBuffer("Received: ", buf, len);
 //        uint8_t no = 0;
         Serial.println("Got: true gateway");
-        struct dataSet data;
-        data.ack = 201 ;
-        data.id = node_addr ; //Device ID / sensor node
-        data.hum = no; // store humidity data
-        data.temp = 20;// store temperature data
-        kurir.setHeaderFrom(node_addr);
-        kurir.sendto((uint8_t *) &data, sizeof(struct dataSet), auth.gtwAddr); // Send out Ack + ID + Sensor data to LoRa gateway
-        kurir.waitPacketSent();
-        Serial.println(from, DEC);
-        Serial.println("Sent a reply");
-        digitalWrite(LED, LOW);
-        Serial.print("Current humidity = ");
-        Serial.print((uint8_t)data.hum, DEC);
+//        struct dataSet data;
+//        data.ack = 201 ;
+//        data.id = node_addr ; //Device ID / sensor node
+//        data.hum = no; // store humidity data
+//        data.temp = 20;// store temperature data
+//        kurir.setHeaderFrom(node_addr);
+//        kurir.sendto((uint8_t *) &data, sizeof(struct dataSet), auth.gtwAddr); // Send out Ack + ID + Sensor data to LoRa gateway
+//        kurir.waitPacketSent();
+        Serial.print("\nMendapat data dari node : ");
+//        Serial.println(from, DEC);
+        Serial.print("ID = ");
+        Serial.print(data.id);
+        Serial.print(" : Current humidity = ");
+        Serial.print(data.hum);
         Serial.print("% ");
         Serial.print("temperature = ");
-        Serial.print((uint8_t)data.temp, DEC);
+        Serial.print(data.temp);
         Serial.println(" C ");
-        no++;
       } else {
         Serial.println("gateway belum diketahui");
       }
@@ -103,4 +106,5 @@ void loop() {
       Serial.println("Receive failed");
     }
   }
+
 }
