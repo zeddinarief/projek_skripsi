@@ -72,8 +72,8 @@ void sendMessage(String outgoing, byte sensor) {
   LoRa.write(localAddress);             // add sender address
   LoRa.write(msgCount);                 // add message ID
   LoRa.write(sensor);
-  LoRa.write(outgoing.length());        // add payload length
-  LoRa.print(outgoing);                 // add payload
+//  LoRa.write(outgoing.length());        // add payload length
+//  LoRa.print(outgoing);                 // add payload
 //  LoRa.write(outgoing.length());        // add payload length
   LoRa.endPacket();                     // finish packet and send it
   msgCount++;                           // increment message ID
