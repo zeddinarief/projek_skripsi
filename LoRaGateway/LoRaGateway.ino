@@ -25,8 +25,8 @@
 
 String outgoing;              // outgoing message
 byte msgCount = 0;            // count of outgoing messages
-byte localAddress = 2;     // address of this device
-byte destination = 3;      // destination to send to
+byte localAddress = 5;     // address of this device
+byte destination = 2;      // destination to send to
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
 
@@ -95,28 +95,29 @@ void onReceive(int packetSize) {
   // if the recipient isn't this device or broadcast,
   if (recipient != localAddress) {
     Serial.println("This message is not for me.");
-    LoRa.beginPacket();                   // start packet
-    LoRa.write(recipient);              // add destination address
-    LoRa.write(sender);             // add sender address
-    LoRa.write(incomingMsgId);                 // add message ID
-    LoRa.write(incomingData);                 // add data sensor
-//    LoRa.write(outgoing.length());        // add payload length
-//    LoRa.print(outgoing);                 // add payload
-    LoRa.endPacket();                     // finish packet and send it
-    return;                             // skip rest of function
+//    LoRa.beginPacket();                   // start packet
+//    LoRa.write(destination);              // add destination address
+//    LoRa.write(localAddress);             // add sender address
+//    LoRa.write(incomingMsgId);                 // add message ID
+//    LoRa.write(incomingData);                 // add data sensor
+////    LoRa.write(outgoing.length());        // add payload length
+////    LoRa.print(outgoing);                 // add payload
+//    LoRa.endPacket();                     // finish packet and send it
+//    return;                             // skip rest of function
   }
 
   // if message is for this device, or broadcast, print details:
 //  Serial.println("Received from: 0x" + String(sender, HEX));
 //  Serial.println("Sent to: 0x" + String(recipient, HEX));
-  Serial.println("Received from: " + String(sender, DEC));
-  Serial.println("Sent to: " + String(recipient, DEC));
-  Serial.println("Message ID: " + String(incomingMsgId));
-  Serial.println("data sensor: " + String(incomingData));
-//  Serial.println("Message length: " + String(incomingLength));
-//  Serial.println("Message: " + incoming);
-  Serial.println("RSSI: " + String(LoRa.packetRssi()));
-  Serial.println("Snr: " + String(LoRa.packetSnr()));
-  Serial.println();
+  else {
+    Serial.println("Received from: " + String(sender, DEC));
+    Serial.println("Sent to: " + String(recipient, DEC));
+    Serial.println("Message ID: " + String(incomingMsgId));
+    Serial.println("data sensor: " + String(incomingData));
+  //  Serial.println("Message length: " + String(incomingLength));
+  //  Serial.println("Message: " + incoming);
+    Serial.println("RSSI: " + String(LoRa.packetRssi()));
+    Serial.println("Snr: " + String(LoRa.packetSnr()));
+    Serial.println();
+  }
 }
-
