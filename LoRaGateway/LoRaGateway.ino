@@ -79,8 +79,8 @@ void onReceive(int packetSize) {
   int recipient = LoRa.read();          // recipient address
   byte sender = LoRa.read();            // sender address
   byte incomingMsgId = LoRa.read();     // incoming msg ID
+  byte incomingData = LoRa.read();      // incoming data sensor
   byte incomingLength = LoRa.read();    // incoming msg length
-
   String incoming = "";                 // payload of packet
 
   while (LoRa.available()) {            // can't use readString() in callback, so
@@ -104,6 +104,7 @@ void onReceive(int packetSize) {
   Serial.println("Received from: " + String(sender, DEC));
   Serial.println("Sent to: " + String(recipient, DEC));
   Serial.println("Message ID: " + String(incomingMsgId));
+  Serial.println("data sensor: " + String(incomingData));
   Serial.println("Message length: " + String(incomingLength));
   Serial.println("Message: " + incoming);
   Serial.println("RSSI: " + String(LoRa.packetRssi()));

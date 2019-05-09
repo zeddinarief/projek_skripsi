@@ -21,12 +21,19 @@ const int irqPin = 1;         // change for your board; must be a hardware inter
 String outgoing;              // outgoing message
 
 byte msgCount = 0;            // count of outgoing messages
+
 //byte localAddress = 0xBB;     // address of this device
 //byte destination = 0xFF;      // destination to send to
 byte localAddress = 3;     // address of this device
 byte destination = 2;      // destination to send to
+byte sensor;
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
+//struct dataSet
+//{
+//  byte ack;
+//  byte sensor;
+//};
 
 void setup() {
   Serial.begin(9600);                   // initialize serial
@@ -48,7 +55,8 @@ void setup() {
 void loop() {
   if (millis() - lastSendTime > interval) {
     String message = "HeLoRa World!";   // send a message
-    sendMessage(message);
+    byte data = 100;
+    sendMessage(message, data);
     Serial.println("Sending " + message);
     lastSendTime = millis();            // timestamp the message
     interval = random(2000) + 1000;    // 2-3 seconds
@@ -58,13 +66,15 @@ void loop() {
 //  onReceive(LoRa.parsePacket());
 }
 
-void sendMessage(String outgoing) {
+void sendMessage(String outgoing, byte sensor) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(destination);              // add destination address
   LoRa.write(localAddress);             // add sender address
   LoRa.write(msgCount);                 // add message ID
+  LoRa.write(sensor);
   LoRa.write(outgoing.length());        // add payload length
   LoRa.print(outgoing);                 // add payload
+//  LoRa.write(outgoing.length());        // add payload length
   LoRa.endPacket();                     // finish packet and send it
   msgCount++;                           // increment message ID
 }
