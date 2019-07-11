@@ -1,17 +1,4 @@
-/*
-  LoRa Duplex communication wth callback
 
-  Sends a message every half second, and uses callback
-  for new incoming messages. Implements a one-byte addressing scheme,
-  with 0xFF as the broadcast address.
-
-  Note: while sending, LoRa radio is not listening for incoming messages.
-  Note2: when using the callback method, you can't use any of the Stream
-  functions that rely on the timeout, such as readString, parseInt(), etc.
-
-  created 28 April 2017
-  by Tom Igoe
-*/
 #include <SPI.h>              // include libraries
 #include <LoRa.h>
 
@@ -24,9 +11,11 @@
 //const int irqPin = 1;         // change for your board; must be a hardware interrupt pin
 
 String outgoing;              // outgoing message
-byte msgCount = 0;            // count of outgoing messages
-byte localAddress = 5;     // address of this device
-byte destination = 2;      // destination to send to
+byte msgCount = 1;            // count of outgoing messages
+byte localAddress = 2;     // address of this device
+byte destination = 3;      // destination to send to
+//byte destination = 4;      // destination coba
+byte currentMsgId = 0;
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
 
@@ -34,7 +23,7 @@ void setup() {
   Serial.begin(9600);                   // initialize serial
   while (!Serial);
 
-  Serial.println("LoRa Duplex with callback");
+  Serial.println("LoRa Gateway Node");
 
   // override the default CS, reset, and IRQ pins (optional)
 //  LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
@@ -44,32 +33,40 @@ void setup() {
     while (true);                       // if failed, do nothing
   }
   
-  LoRa.onReceive(onReceive);
-  LoRa.receive();
-  Serial.println("LoRa init succeeded.");
+//  LoRa.onReceive(onReceive);
+//  LoRa.receive();
+  Serial.print("LoRa init succeeded. Lora node ");
   Serial.println(localAddress);
 }
 
 void loop() {
-//  if (millis() - lastSendTime > interval) {
-//    String message = "HeLoRa World!";   // send a message
-//    sendMessage(message);
-//    Serial.println("Sending " + message);
-//    lastSendTime = millis();            // timestamp the message
-//    interval = random(2000) + 1000;     // 2-3 seconds
-//    LoRa.receive();                     // go back into receive mode
-//  }
+  if (Serial.available() > 0) {    // is a character available?
+    char in = Serial.read();       // get the character
+    if (in == 's') {
+      Serial.println("mengirim pesan request");
+      sendRequest();
+//      LoRa.receive();
+      Serial.println("menunggu respon");
+    }
+  }
+//  parse for a packet, and call onReceive with the result:
+  onReceive(LoRa.parsePacket());
 }
 
-void sendMessage(String outgoing) {
+void sendRequest() {
+//  Serial.println("pesan telah dikirim");
   LoRa.beginPacket();                   // start packet
   LoRa.write(destination);              // add destination address
   LoRa.write(localAddress);             // add sender address
   LoRa.write(msgCount);                 // add message ID
-  LoRa.write(outgoing.length());        // add payload length
-  LoRa.print(outgoing);                 // add payload
+  LoRa.write(0);                       // add message type
+  LoRa.write(0);                      // add data sensor
+//  LoRa.write(outgoing.length());        // add payload length
+//  LoRa.print(outgoing);                 // add payload
+//  LoRa.write(outgoing.length());        // add payload length
   LoRa.endPacket();                     // finish packet and send it
   msgCount++;                           // increment message ID
+  Serial.println("pesan telah dikirim");
 }
 
 void onReceive(int packetSize) {
@@ -79,6 +76,7 @@ void onReceive(int packetSize) {
   int recipient = LoRa.read();          // recipient address
   byte sender = LoRa.read();            // sender address
   byte incomingMsgId = LoRa.read();     // incoming msg ID
+  byte incomingMsgType = LoRa.read();     // incoming msg type
   byte incomingData = LoRa.read();      // incoming data sensor
 //  byte incomingLength = LoRa.read();    // incoming msg length
 //  String incoming = "";                 // payload of packet
@@ -93,31 +91,27 @@ void onReceive(int packetSize) {
 //  }
 
   // if the recipient isn't this device or broadcast,
-  if (recipient != localAddress) {
+  if (recipient != localAddress || incomingMsgType != 1 || incomingMsgId == currentMsgId) {
     Serial.println("This message is not for me.");
-//    LoRa.beginPacket();                   // start packet
-//    LoRa.write(destination);              // add destination address
-//    LoRa.write(localAddress);             // add sender address
-//    LoRa.write(incomingMsgId);                 // add message ID
-//    LoRa.write(incomingData);                 // add data sensor
-////    LoRa.write(outgoing.length());        // add payload length
-////    LoRa.print(outgoing);                 // add payload
-//    LoRa.endPacket();                     // finish packet and send it
-//    return;                             // skip rest of function
+//    return;
   }
 
   // if message is for this device, or broadcast, print details:
 //  Serial.println("Received from: 0x" + String(sender, HEX));
 //  Serial.println("Sent to: 0x" + String(recipient, HEX));
   else {
+    currentMsgId = incomingMsgId;
     Serial.println("Received from: " + String(sender, DEC));
     Serial.println("Sent to: " + String(recipient, DEC));
     Serial.println("Message ID: " + String(incomingMsgId));
-    Serial.println("data sensor: " + String(incomingData));
+    Serial.println("Message Type: Response");
+    Serial.print("data sensor Suhu: " + String(incomingData));
+    Serial.println(" C");
   //  Serial.println("Message length: " + String(incomingLength));
   //  Serial.println("Message: " + incoming);
     Serial.println("RSSI: " + String(LoRa.packetRssi()));
     Serial.println("Snr: " + String(LoRa.packetSnr()));
-    Serial.println();
+    
   }
+  Serial.println(" ");
 }
