@@ -40,15 +40,25 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() > 0) {    // is a character available?
-    char in = Serial.read();       // get the character
-    if (in == 's') {
-      Serial.println("mengirim pesan request");
-      sendRequest();
-//      LoRa.receive();
-      Serial.println("menunggu respon");
-    }
+
+   if (millis() - lastSendTime > interval) {
+//    String message = "HeLoRa World!";   // send a message
+//    byte suhu = dht.readTemperature();
+    sendRequest();
+//    Serial.println("Sending Request...");
+    lastSendTime = millis();            // timestamp the message
+    interval = random(2000) + 1000;    // 2-3 seconds
   }
+
+//  if (Serial.available() > 0) {    // is a character available?
+//    char in = Serial.read();       // get the character
+//    if (in == 's') {
+//      Serial.println("mengirim pesan request");
+//      sendRequest();
+////      LoRa.receive();
+//      Serial.println("menunggu respon");
+//    }
+//  }
 //  parse for a packet, and call onReceive with the result:
   onReceive(LoRa.parsePacket());
 }
