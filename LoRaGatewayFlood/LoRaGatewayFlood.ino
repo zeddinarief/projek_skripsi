@@ -6,9 +6,9 @@
 #error "This example is not compatible with the Arduino MKR WAN 1300 board!"
 #endif
 
-//const int csPin = 7;          // LoRa radio chip select
-//const int resetPin = 6;       // LoRa radio reset
-//const int irqPin = 1;         // change for your board; must be a hardware interrupt pin
+const int csPin = 10;          // LoRa radio chip select
+const int resetPin = 9;       // LoRa radio reset
+const int irqPin = 2;         // change for your board; must be a hardware interrupt pin
 
 String outgoing;              // outgoing message
 byte msgCount = 1;            // count of outgoing messages
@@ -26,7 +26,7 @@ void setup() {
   Serial.println("LoRa Gateway Node");
 
   // override the default CS, reset, and IRQ pins (optional)
-//  LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
+  LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
 
   if (!LoRa.begin(433E6)) {             // initialize ratio at 915 MHz
     Serial.println("LoRa init failed. Check your connections.");

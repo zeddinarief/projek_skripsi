@@ -15,9 +15,9 @@
 #include <LoRa.h>
 //#include <DHT.h>
 
-const int csPin = 7;          // LoRa radio chip select
-const int resetPin = 6;       // LoRa radio reset
-const int irqPin = 1;         // change for your board; must be a hardware interrupt pin
+const int csPin = 10;          // LoRa radio chip select
+const int resetPin = 9;       // LoRa radio reset
+const int irqPin = 2;         // change for your board; must be a hardware interrupt pin
 //DHT dht(3, DHT11);
 
 String outgoing;              // outgoing message
@@ -48,7 +48,7 @@ void setup() {
   Serial.println("LoRa Node Sensor");
 
   // override the default CS, reset, and IRQ pins (optional)
-//  LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
+  LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
 
   if (!LoRa.begin(433E6)) {             // initialize ratio at 915 MHz
     Serial.println("LoRa init failed. Check your connections.");
