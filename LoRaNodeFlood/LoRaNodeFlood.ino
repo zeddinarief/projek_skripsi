@@ -55,8 +55,8 @@ void setup() {
     while (true);                       // if failed, do nothing
   }
 
-//  LoRa.onReceive(onReceive);
-//  LoRa.receive();
+  LoRa.onReceive(onReceive);
+  LoRa.receive();
   Serial.print("LoRa init succeeded. Lora node ");
   Serial.println(localAddress);
 }
@@ -77,7 +77,9 @@ void loop() {
 //  }
 
 //   parse for a packet, and call onReceive with the result:
-  onReceive(LoRa.parsePacket());
+//  onReceive(LoRa.parsePacket());
+//  LoRa.onReceive(onReceive);
+  LoRa.receive();
 }
 
 void sendMessage(byte dest, byte id, byte sensor) {

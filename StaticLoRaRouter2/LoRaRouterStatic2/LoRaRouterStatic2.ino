@@ -19,14 +19,14 @@
 #error "This example is not compatible with the Arduino MKR WAN 1300 board!"
 #endif
 
-//const int csPin = 7;          // LoRa radio chip select
-//const int resetPin = 6;       // LoRa radio reset
-//const int irqPin = 1;         // change for your board; must be a hardware interrupt pin
+const int csPin = 10;          // LoRa radio chip select
+const int resetPin = 9;       // LoRa radio reset
+const int irqPin = 2;         // change for your board; must be a hardware interrupt pin
 
 String outgoing;              // outgoing message
-byte msgCount = 0;            // count of outgoing messages
+byte msgCount = 1;            // count of outgoing messages
 byte localAddress = 5;     // address of this device
-byte destination = 2;      // destination to send to
+//byte destination = 0;      // destination to send to
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
 
@@ -34,7 +34,7 @@ void setup() {
   Serial.begin(9600);                   // initialize serial
   while (!Serial);
 
-  Serial.println("LoRa Duplex with callback");
+  Serial.println("LoRa Router");
 
   // override the default CS, reset, and IRQ pins (optional)
 //  LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
@@ -46,7 +46,7 @@ void setup() {
   
   LoRa.onReceive(onReceive);
   LoRa.receive();
-  Serial.println("LoRa init succeeded.");
+  Serial.print("LoRa init succeeded. Lora node : ");
   Serial.println(localAddress);
 }
 
@@ -59,17 +59,23 @@ void loop() {
 //    interval = random(2000) + 1000;     // 2-3 seconds
 //    LoRa.receive();                     // go back into receive mode
 //  }
+  delay(100);
+  LoRa.receive();
 }
 
-void sendMessage(String outgoing) {
+void sendMessage(byte sensor, byte msgId, byte dest) {
   LoRa.beginPacket();                   // start packet
-  LoRa.write(destination);              // add destination address
+  LoRa.write(dest);              // add destination address
   LoRa.write(localAddress);             // add sender address
-  LoRa.write(msgCount);                 // add message ID
-  LoRa.write(outgoing.length());        // add payload length
-  LoRa.print(outgoing);                 // add payload
+  LoRa.write(msgId);                 // add message ID
+  LoRa.write(sensor);
+//  LoRa.write(outgoing.length());        // add payload length
+//  LoRa.print(outgoing);                 // add payload
   LoRa.endPacket();                     // finish packet and send it
-  msgCount++;                           // increment message ID
+  Serial.print("menuju :");
+  Serial.println(String(dest, DEC));
+  
+//  msgCount++;                           // increment message ID
 }
 
 void onReceive(int packetSize) {
@@ -86,38 +92,56 @@ void onReceive(int packetSize) {
 //  while (LoRa.available()) {            // can't use readString() in callback, so
 //    incoming += (char)LoRa.read();      // add bytes one by one
 //  }
-//
+
 //  if (incomingLength != incoming.length()) {   // check length for error
 //    Serial.println("error: message length does not match length");
 //    return;                             // skip rest of function
 //  }
 
   // if the recipient isn't this device or broadcast,
-  if (recipient != localAddress) {
-    Serial.println("This message is not for me.");
+  if (recipient == localAddress) {
+//    Serial.println("This message is not for me.");
 //    LoRa.beginPacket();                   // start packet
 //    LoRa.write(destination);              // add destination address
 //    LoRa.write(localAddress);             // add sender address
 //    LoRa.write(incomingMsgId);                 // add message ID
 //    LoRa.write(incomingData);                 // add data sensor
-////    LoRa.write(outgoing.length());        // add payload length
-////    LoRa.print(outgoing);                 // add payload
+//    LoRa.write(outgoing.length());        // add payload length
+//    LoRa.print(outgoing);                 // add payload
 //    LoRa.endPacket();                     // finish packet and send it
+    if (sender == 3){
+      byte dest = 6;
+      delay(100);
+      Serial.println("forward paket.");
+      sendMessage(incomingData, incomingMsgId, dest);
+      LoRa.receive();                     // go back into receive mode 
+    } else if (sender == 6){
+      byte dest = 3;
+      delay(300);
+      Serial.println("forward paket.");
+      sendMessage(incomingData, incomingMsgId, dest);
+      LoRa.receive();                     // go back into receive mode
+    }
+    
 //    return;                             // skip rest of function
   }
-
-  // if message is for this device, or broadcast, print details:
-//  Serial.println("Received from: 0x" + String(sender, HEX));
-//  Serial.println("Sent to: 0x" + String(recipient, HEX));
   else {
-    Serial.println("Received from: " + String(sender, DEC));
-    Serial.println("Sent to: " + String(recipient, DEC));
-    Serial.println("Message ID: " + String(incomingMsgId));
-    Serial.println("data sensor: " + String(incomingData));
-  //  Serial.println("Message length: " + String(incomingLength));
-  //  Serial.println("Message: " + incoming);
-    Serial.println("RSSI: " + String(LoRa.packetRssi()));
-    Serial.println("Snr: " + String(LoRa.packetSnr()));
-    Serial.println();
+    Serial.print(String(sender));
+    Serial.println(" This message is not for me");
+    // if message is for this device, or broadcast, print details:
+  //  Serial.println("Received from: 0x" + String(sender, HEX));
+  //  Serial.println("Sent to: 0x" + String(recipient, HEX));
+//    Serial.println("Received from: " + String(sender, DEC));
+//    Serial.println("Sent to: " + String(recipient, DEC));
+//    Serial.println("Message ID: " + String(incomingMsgId));
+//    Serial.println("data sensor: " + String(incomingData));
+//    Serial.println("isi Paket: " + String(incoming));
+//    Serial.println("Message length: " + String(incomingLength));
+//    Serial.println("Message: " + incoming);
+
+//    Serial.println("RSSI: " + String(LoRa.packetRssi()));
+//    Serial.println("Snr: " + String(LoRa.packetSnr()));
+//    Serial.println();  
   }
 }
+

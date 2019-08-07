@@ -13,7 +13,7 @@ const int irqPin = 2;         // change for your board; must be a hardware inter
 String outgoing;              // outgoing message
 byte msgCount = 1;            // count of outgoing messages
 byte localAddress = 2;     // address of this device
-byte destination = 3;      // destination to send to
+byte destination = 5;      // destination to send to
 //byte destination = 4;      // destination coba
 byte currentMsgId = 0;
 long lastSendTime = 0;        // last send time
@@ -33,34 +33,36 @@ void setup() {
     while (true);                       // if failed, do nothing
   }
   
-//  LoRa.onReceive(onReceive);
-//  LoRa.receive();
+  LoRa.onReceive(onReceive);
+  LoRa.receive();
   Serial.print("LoRa init succeeded. Lora node ");
   Serial.println(localAddress);
 }
 
 void loop() {
-
-   if (millis() - lastSendTime > interval) {
-//    String message = "HeLoRa World!";   // send a message
-//    byte suhu = dht.readTemperature();
-    sendRequest();
-//    Serial.println("Sending Request...");
-    lastSendTime = millis();            // timestamp the message
-    interval = random(2000) + 1000;    // 2-3 seconds
-  }
-
-//  if (Serial.available() > 0) {    // is a character available?
-//    char in = Serial.read();       // get the character
-//    if (in == 's') {
-//      Serial.println("mengirim pesan request");
-//      sendRequest();
-////      LoRa.receive();
-//      Serial.println("menunggu respon");
-//    }
+//
+//   if (millis() - lastSendTime > interval) {
+////    String message = "HeLoRa World!";   // send a message
+////    byte suhu = dht.readTemperature();
+//    sendRequest();
+////    Serial.println("Sending Request...");
+//    lastSendTime = millis();            // timestamp the message
+//    interval = random(2000) + 1000;    // 2-3 seconds
 //  }
+
+  if (Serial.available() > 0) {    // is a character available?
+    char in = Serial.read();       // get the character
+    if (in == 's') {
+      Serial.println("mengirim pesan request");
+      sendRequest();
+//      LoRa.receive();
+      Serial.println("menunggu respon");
+    }
+  }
 //  parse for a packet, and call onReceive with the result:
-  onReceive(LoRa.parsePacket());
+//  onReceive(LoRa.parsePacket());
+//  LoRa.onReceive(onReceive);
+  LoRa.receive();
 }
 
 void sendRequest() {
@@ -101,16 +103,8 @@ void onReceive(int packetSize) {
 //  }
 
   // if the recipient isn't this device or broadcast,
-  if (recipient != localAddress || incomingMsgType != 1 || incomingMsgId == currentMsgId) {
-    Serial.println("This message is not for me.");
-//    return;
-  }
-
-  // if message is for this device, or broadcast, print details:
-//  Serial.println("Received from: 0x" + String(sender, HEX));
-//  Serial.println("Sent to: 0x" + String(recipient, HEX));
-  else {
-    currentMsgId = incomingMsgId;
+  if (recipient == localAddress && incomingMsgType == 1 && incomingMsgId != currentMsgId) {
+     currentMsgId = incomingMsgId;
     Serial.println("Received from: " + String(sender, DEC));
     Serial.println("Sent to: " + String(recipient, DEC));
     Serial.println("Message ID: " + String(incomingMsgId));
@@ -121,6 +115,37 @@ void onReceive(int packetSize) {
   //  Serial.println("Message: " + incoming);
     Serial.println("RSSI: " + String(LoRa.packetRssi()));
     Serial.println("Snr: " + String(LoRa.packetSnr()));
+    
+//    Serial.println("This message is not for me.");
+//    Serial.print("id : ");
+//    Serial.println(incomingMsgId);
+//    Serial.print("type : ");
+//    Serial.println(incomingMsgType);
+//    return;
+  }
+
+  // if message is for this device, or broadcast, print details:
+//  Serial.println("Received from: 0x" + String(sender, HEX));
+//  Serial.println("Sent to: 0x" + String(recipient, HEX));
+  else {
+    Serial.println("This message is not for me.");
+    Serial.print("id : ");
+    Serial.println(incomingMsgId);
+    Serial.print("type : ");
+    Serial.println(incomingMsgType);
+    
+//    
+//    currentMsgId = incomingMsgId;
+//    Serial.println("Received from: " + String(sender, DEC));
+//    Serial.println("Sent to: " + String(recipient, DEC));
+//    Serial.println("Message ID: " + String(incomingMsgId));
+//    Serial.println("Message Type: Response");
+//    Serial.print("data sensor Suhu: " + String(incomingData));
+//    Serial.println(" C");
+//  //  Serial.println("Message length: " + String(incomingLength));
+//  //  Serial.println("Message: " + incoming);
+//    Serial.println("RSSI: " + String(LoRa.packetRssi()));
+//    Serial.println("Snr: " + String(LoRa.packetSnr()));
     
   }
   Serial.println(" ");
