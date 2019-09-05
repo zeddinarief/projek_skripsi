@@ -26,7 +26,7 @@ const int irqPin = 2;         // change for your board; must be a hardware inter
 String outgoing;              // outgoing message
 byte msgCount = 1;            // count of outgoing messages
 byte localAddress = 3;     // address of this device
-byte destination = 5;      // destination to send to
+byte destination = 4;      // destination to send to
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
 

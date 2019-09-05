@@ -26,7 +26,7 @@ const int irqPin = 2;         // change for your board; must be a hardware inter
 String outgoing;              // outgoing message
 byte msgCount = 1;            // count of outgoing messages
 byte localAddress = 4;     // address of this device
-byte destination = 6;      // destination to send to
+//byte destination = 5;      // destination to send to
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
 
@@ -117,7 +117,7 @@ void onReceive(int packetSize) {
       LoRa.receive();                     // go back into receive mode 
     } else if (sender == 5){
       byte dest = 3;
-      delay(100);
+      delay(500);
       Serial.println("forward paket.");
       sendMessage(incomingData, incomingMsgId, dest);
       LoRa.receive();                     // go back into receive mode
