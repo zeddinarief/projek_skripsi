@@ -13,7 +13,7 @@ const int irqPin = 2;         // change for your board; must be a hardware inter
 String outgoing;              // outgoing message
 byte msgCount = 1;            // count of outgoing messages
 byte localAddress = 2;     // address of this device
-byte destination = 5;      // destination to send to
+byte destination = 6;      // destination to send to
 //byte destination = 4;      // destination coba
 byte currentMsgId = 0;
 long lastSendTime = 0;        // last send time
@@ -63,6 +63,7 @@ void loop() {
 //  onReceive(LoRa.parsePacket());
 //  LoRa.onReceive(onReceive);
   LoRa.receive();
+  delay(150);
 }
 
 void sendRequest() {

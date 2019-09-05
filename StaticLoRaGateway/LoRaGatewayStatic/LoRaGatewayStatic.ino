@@ -97,7 +97,7 @@ void Replay(int balesan){
   LoRa.endPacket();
   Serial.println("replay....pesan diterima\n"); 
   LoRa.receive();
-  }
+}
 
 void onReceive(int packetSize) {
   if (packetSize == 0) return;          // if there's no packet, return

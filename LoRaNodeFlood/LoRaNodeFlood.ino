@@ -13,12 +13,12 @@
 */
 #include <SPI.h>              // include libraries
 #include <LoRa.h>
-//#include <DHT.h>
+#include <DHT.h>
 
 const int csPin = 10;          // LoRa radio chip select
 const int resetPin = 9;       // LoRa radio reset
 const int irqPin = 2;         // change for your board; must be a hardware interrupt pin
-//DHT dht(3, DHT11);
+DHT dht(3, DHT11);
 
 String outgoing;              // outgoing message
 
@@ -26,9 +26,9 @@ byte msgCount = 1;            // count of outgoing messages
 
 //byte localAddress = 0xBB;     // address of this device
 //byte destination = 0xFF;      // destination to send to
-byte localAddress = 3;     // address of this device
+byte localAddress = 6;     // address of this device
 byte destination = 2;      // destination to send to
-byte suhu;
+//byte suhu;
 //byte destination = 5;      // destination coba
 //byte sensor;
 byte currentMsgId = 0;
@@ -42,7 +42,7 @@ int interval = 2000;          // interval between sends
 
 void setup() {
   Serial.begin(9600);                   // initialize serial
-//  dht.begin();
+  dht.begin();
   while (!Serial);
 
   Serial.println("LoRa Node Sensor");
@@ -63,7 +63,7 @@ void setup() {
 
 void loop() {
 //  suhu = dht.readTemperature();
-  suhu = 100;
+//  suhu = 100;
 //  if (millis() - lastSendTime > interval) {
 ////    String message = "HeLoRa World!";   // send a message
 ////    byte suhu = dht.readTemperature();
@@ -75,7 +75,7 @@ void loop() {
 //    lastSendTime = millis();            // timestamp the message
 //    interval = random(2000) + 1000;    // 2-3 seconds
 //  }
-
+  delay(100);
 //   parse for a packet, and call onReceive with the result:
 //  onReceive(LoRa.parsePacket());
 //  LoRa.onReceive(onReceive);
@@ -119,14 +119,14 @@ void onReceive(int packetSize) {
 
   currentMsgId = incomingMsgId;
 //  String message = "HeLoRa World!";   // send a message
-//  suhu = 100;
-//  byte suhu = dht.readTemperature();
+//  byte suhu = 100;
+  byte suhu = dht.readTemperature();
   Serial.print("suhu: ");
   Serial.print(suhu);
   Serial.println(" C");
   sendMessage(sender, incomingMsgId, suhu);
   Serial.println("Sending response ...");
-//  LoRa.receive();
+  LoRa.receive();
   // if message is for this device, or broadcast, print details:
   Serial.println("Received from: " + String(sender, DEC));
   Serial.println("Sent to: " + String(recipient, DEC));
