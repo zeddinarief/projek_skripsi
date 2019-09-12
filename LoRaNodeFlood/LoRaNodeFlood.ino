@@ -28,7 +28,7 @@ byte msgCount = 1;            // count of outgoing messages
 //byte destination = 0xFF;      // destination to send to
 byte localAddress = 6;     // address of this device
 byte destination = 2;      // destination to send to
-//byte suhu;
+byte suhu;
 //byte destination = 5;      // destination coba
 //byte sensor;
 byte currentMsgId = 0;
@@ -62,7 +62,7 @@ void setup() {
 }
 
 void loop() {
-//  suhu = dht.readTemperature();
+  suhu = dht.readTemperature();
 //  suhu = 100;
 //  if (millis() - lastSendTime > interval) {
 ////    String message = "HeLoRa World!";   // send a message
@@ -120,7 +120,7 @@ void onReceive(int packetSize) {
   currentMsgId = incomingMsgId;
 //  String message = "HeLoRa World!";   // send a message
 //  byte suhu = 100;
-  byte suhu = dht.readTemperature();
+//  byte suhu = dht.readTemperature();
   Serial.print("suhu: ");
   Serial.print(suhu);
   Serial.println(" C");
