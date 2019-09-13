@@ -109,14 +109,14 @@ void onReceive(int packetSize) {
 //    LoRa.write(outgoing.length());        // add payload length
 //    LoRa.print(outgoing);                 // add payload
 //    LoRa.endPacket();                     // finish packet and send it
-    if (sender == 3){
+    if (sender == 4){
       byte dest = 6;
       delay(100);
       Serial.println("forward paket.");
       sendMessage(incomingData, incomingMsgId, dest);
       LoRa.receive();                     // go back into receive mode 
     } else if (sender == 6){
-      byte dest = 3;
+      byte dest = 4;
       delay(300);
       Serial.println("forward paket.");
       sendMessage(incomingData, incomingMsgId, dest);

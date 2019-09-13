@@ -26,7 +26,7 @@ const int irqPin = 2;         // change for your board; must be a hardware inter
 String outgoing;              // outgoing message
 byte msgCount = 1;            // count of outgoing messages
 byte localAddress = 3;     // address of this device
-byte destination = 6;      // destination to send to
+byte destination = 4;      // destination to send to
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
 
@@ -83,7 +83,7 @@ void onReceive(int packetSize) {
   byte incomingData = LoRa.read();      // incoming data sensor
  
   Serial.print("Dikirim ke : ");
-  Serial.println(destination);
+  Serial.println(recipient);
   Serial.println("------------------------\n");
   // if the recipient isn't this device or broadcast,
   if (recipient != localAddress) {
