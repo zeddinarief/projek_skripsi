@@ -25,7 +25,7 @@ byte msgCount = 1;            // count of outgoing messages
 //byte localAddress = 0xBB;     // address of this device
 //byte destination = 0xFF;      // destination to send to
 byte localAddress = 6;     // address of this device
-byte destination = 3;      // destination to send to
+byte destination = 4;      // destination to send to
 byte sensor;
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
@@ -54,9 +54,8 @@ void setup() {
 
 void loop() {  
     delay(100);
-    sensor = dht.readTemperature();
-    
-LoRa.receive();
+    sensor = dht.readTemperature();   
+    LoRa.receive();
 }
 
 void sendMessage(byte sensor, byte msgId) {
@@ -82,7 +81,6 @@ void onReceive(int packetSize) {
 
     if (recipient != localAddress) {
       Serial.println(recipient);
-      
       Serial.println("This message is not for me.");
       return;                             // skip rest of function
     }
@@ -95,7 +93,7 @@ void onReceive(int packetSize) {
     Serial.println("RSSI: " + String(LoRa.packetRssi()));
     Serial.println("Snr: " + String(LoRa.packetSnr()));
     Serial.println("---------------------");
-    delay(300);
+    
     sendMessage(sensor, incomingMsgId);  
     Serial.println("\nMengirim Pesan");
     Serial.println("Send to : " + String(sender, DEC));
@@ -104,6 +102,13 @@ void onReceive(int packetSize) {
     Serial.println("Message Id : "+String(incomingMsgId));
     Serial.println("RSSI: " + String(LoRa.packetRssi()));
     Serial.println("Snr: " + String(LoRa.packetSnr()));
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    Serial.println();
     Serial.println();
   }
 }
