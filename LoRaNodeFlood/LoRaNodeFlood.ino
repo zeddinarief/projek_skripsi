@@ -50,7 +50,7 @@ void setup() {
   // override the default CS, reset, and IRQ pins (optional)
   LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
 
-  if (!LoRa.begin(433E6)) {             // initialize ratio at 915 MHz
+  if (!LoRa.begin(433E6)) {             // initialize ratio at 433 MHz
     Serial.println("LoRa init failed. Check your connections.");
     while (true);                       // if failed, do nothing
   }
@@ -62,8 +62,8 @@ void setup() {
 }
 
 void loop() {
-  suhu = dht.readTemperature();
-//  suhu = 100;
+//  suhu = dht.readTemperature();
+  suhu = 100;
 //  if (millis() - lastSendTime > interval) {
 ////    String message = "HeLoRa World!";   // send a message
 ////    byte suhu = dht.readTemperature();
@@ -75,11 +75,11 @@ void loop() {
 //    lastSendTime = millis();            // timestamp the message
 //    interval = random(2000) + 1000;    // 2-3 seconds
 //  }
-  delay(100);
 //   parse for a packet, and call onReceive with the result:
 //  onReceive(LoRa.parsePacket());
 //  LoRa.onReceive(onReceive);
-  LoRa.receive();
+  LoRa.receive(); 
+  delay(100);
 }
 
 void sendMessage(byte dest, byte id, byte sensor) {
@@ -89,9 +89,6 @@ void sendMessage(byte dest, byte id, byte sensor) {
   LoRa.write(id);                 // add message ID
   LoRa.write(1);                 // add message type
   LoRa.write(sensor);
-//  LoRa.write(outgoing.length());        // add payload length
-//  LoRa.print(outgoing);                 // add payload
-//  LoRa.write(outgoing.length());        // add payload length
   LoRa.endPacket();                     // finish packet and send it
   msgCount++;                  // increment message ID
 }
@@ -118,7 +115,6 @@ void onReceive(int packetSize) {
   }
 
   currentMsgId = incomingMsgId;
-//  String message = "HeLoRa World!";   // send a message
 //  byte suhu = 100;
 //  byte suhu = dht.readTemperature();
   Serial.print("suhu: ");

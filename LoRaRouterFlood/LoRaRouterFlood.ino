@@ -13,9 +13,9 @@ const int irqPin = 2;         // change for your board; must be a hardware inter
 String outgoing;              // outgoing message
 byte msgCount = 0;            // count of outgoing messages
 
-//byte localAddress = 4;     // address of this device
+byte localAddress = 4;     // address of this device
 //byte localAddress = 5;     // address of this device
-byte localAddress = 6;     // address of this device
+//byte localAddress = 6;     // address of this device
 
 //byte destination = 5;      // destination coba
 byte currentMsgId = 0;
