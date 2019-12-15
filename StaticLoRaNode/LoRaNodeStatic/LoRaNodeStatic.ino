@@ -24,8 +24,8 @@ byte msgCount = 1;            // count of outgoing messages
 
 //byte localAddress = 0xBB;     // address of this device
 //byte destination = 0xFF;      // destination to send to
-byte localAddress = 6;     // address of this device
-byte destination = 4;      // destination to send to
+byte localAddress = 7;     // address of this device
+byte destination = 6;      // destination to send to
 byte sensor;
 long lastSendTime = 0;        // last send time
 int interval = 2000;          // interval between sends
