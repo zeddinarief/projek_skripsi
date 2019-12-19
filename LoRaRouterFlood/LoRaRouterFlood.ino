@@ -42,7 +42,8 @@ void setup() {
     Serial.println("LoRa init failed. Check your connections.");
     while (true);                       // if failed, do nothing
   }
-  
+
+  LoRa.setSyncWord(0x34);           // ranges from 0-0xFF, default 0x34, see API docs
 //  LoRa.onReceive(onReceive);
 //  LoRa.receive();
   Serial.print("LoRa init succeeded. Lora node ");
@@ -67,12 +68,13 @@ void loop() {
   onReceive(LoRa.parsePacket());
 }
 
-void forwardMessage(int recipient, byte sender, byte msgId, byte msgType, byte sensor) {
+void forwardMessage(int recipient, byte sender, byte msgId, byte msgType, byte hopcount, byte sensor) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(recipient);              // add destination address
   LoRa.write(sender);                 // add sender address
   LoRa.write(msgId);                 // add message ID
   LoRa.write(msgType);                 // add message type
+  LoRa.write(hopcount);                 // add message type
 //  payload
   LoRa.write(sensor);                   // add data sensor
   LoRa.endPacket();                     // finish packet and send it
@@ -86,6 +88,7 @@ void onReceive(int packetSize) {
   byte sender = LoRa.read();            // sender address
   byte incomingMsgId = LoRa.read();     // incoming msg ID
   byte incomingMsgType = LoRa.read();     // incoming msg type
+  byte hopcount = LoRa.read();     // hopcount
   byte incomingData = LoRa.read();      // incoming data sensor
 
   // if the recipient isn't this device or broadcast,
@@ -97,9 +100,12 @@ void onReceive(int packetSize) {
       return;
     }
     push(sender, recipient, incomingMsgId);
-    forwardMessage(recipient, sender, incomingMsgId, incomingMsgType, incomingData);  
+    byte newhopcount = hopcount + 1;
+    forwardMessage(recipient, sender, incomingMsgId, incomingMsgType, newhopcount, incomingData);  
     Serial.print("forward packet id:");
     Serial.println(incomingMsgId);
+    Serial.print("from: ");
+    Serial.println(sender);
   } 
   
   Serial.println();

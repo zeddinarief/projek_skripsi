@@ -22,7 +22,7 @@ DHT dht(3, DHT11);
 
 String outgoing;              // outgoing message
 
-//byte msgCount = 1;            // count of outgoing messages
+byte msgId = 1;            // count of outgoing messages
 
 byte localAddress = 6;     // address of this device
 byte destination = 2;      // destination to send to
@@ -53,7 +53,8 @@ void setup() {
     Serial.println("LoRa init failed. Check your connections.");
     while (true);                       // if failed, do nothing
   }
-
+  
+  LoRa.setSyncWord(0x34);           // ranges from 0-0xFF, default 0x34, see API docs
 //  LoRa.onReceive(onReceive);
 //  LoRa.receive();
   Serial.print("LoRa init succeeded. Lora node ");
@@ -63,8 +64,8 @@ void setup() {
 void loop() {
   if (millis() - lastSendTime > interval) {
     pop();
-    show();
-    Serial.println("");
+//    show();
+//    Serial.println("");
     lastSendTime = millis();            // timestamp the message
   }
   
@@ -72,14 +73,16 @@ void loop() {
   onReceive(LoRa.parsePacket());
 }
 
-void sendMessage(byte dest, byte id, byte sensor) {
+void sendMessage(byte dest, byte id, byte hopcount, byte sensor) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(dest);              // add destination address
   LoRa.write(localAddress);       // add sender address
   LoRa.write(id);                 // add message ID
   LoRa.write(1);                 // add message type
+  LoRa.write(hopcount);                 // add message type
   LoRa.write(sensor);             // add payload data sensor
   LoRa.endPacket();                     // finish packet and send it
+  msgId++;
 }
 
 void onReceive(int packetSize) {
@@ -90,6 +93,7 @@ void onReceive(int packetSize) {
   byte sender = LoRa.read();            // sender address
   byte incomingMsgId = LoRa.read();     // incoming msg ID
   byte incomingMsgType = LoRa.read();     // incoming msg type
+  byte hopcount = LoRa.read();     // hopcount
   byte incomingData = LoRa.read();      // incoming data sensor
 
   Serial.println("Receiving request ....");
@@ -97,7 +101,9 @@ void onReceive(int packetSize) {
   // if the recipient isn't this device or broadcast,
   if (recipient != localAddress || incomingMsgType != 0) {
     Serial.print("This message id : ");
-    Serial.print(incomingMsgId);
+    Serial.println(incomingMsgId);
+    Serial.print("from : ");
+    Serial.print(sender);
     Serial.println(" is not for me.");
     Serial.println("");
     return;                             // skip rest of function
@@ -112,18 +118,18 @@ void onReceive(int packetSize) {
     }
     
   push(sender, recipient, incomingMsgId);
-  byte msgId = incomingMsgId + 1;
+  byte newhopcount = hopcount + 1;
   Serial.print("suhu: ");
   Serial.print(suhu);
   Serial.println(" C");
-  sendMessage(sender, msgId, suhu);
+  sendMessage(sender, msgId, newhopcount, suhu);
   Serial.println("Sending response ...");
 //  LoRa.receive();
   // if message is for this device, or broadcast, print details:
   Serial.println("Received from: " + String(sender, DEC));
   Serial.println("Sent to: " + String(recipient, DEC));
   Serial.println("Message ID: " + String(incomingMsgId));
-  Serial.println("Message type: request");
+  Serial.println("Message type: Request");
   Serial.println("RSSI: " + String(LoRa.packetRssi()));
   Serial.println("Snr: " + String(LoRa.packetSnr()));
   Serial.println();

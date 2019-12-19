@@ -17,6 +17,8 @@ byte destination = 6;      // destination to send to
 //byte currentMsgId = 0;
 long lastSendTime = 0;        // last send time
 int interval = 10000;          // interval between delete old record
+int timeout = 3000;
+long lastRetransTime = 0;        // last send time
 
 typedef struct
  {
@@ -40,7 +42,7 @@ void setup() {
     Serial.println("LoRa init failed. Check your connections.");
     while (true);                       // if failed, do nothing
   }
-  
+  LoRa.setSyncWord(0x34);           // ranges from 0-0xFF, default 0x34, see API docs
 //  LoRa.onReceive(onReceive);
 //  LoRa.receive();
   Serial.print("LoRa init succeeded. Lora node ");
@@ -59,13 +61,15 @@ void loop() {
     char in = Serial.read();       // get the character
     if (in == 's') {
       Serial.println("mengirim pesan request");
+      lastRetransTime = millis();
       sendRequest();
+      waitReply();
+      Serial.println("");
 //      LoRa.receive();
-      Serial.println("menunggu respon");
     }
   }
 //  parse for a packet, and call onReceive with the result:
-  onReceive(LoRa.parsePacket());
+//  onReceive(LoRa.parsePacket());
 }
 
 void sendRequest() {
@@ -75,6 +79,7 @@ void sendRequest() {
   LoRa.write(localAddress);             // add sender address
   LoRa.write(msgId);                 // add message ID
   LoRa.write(0);                       // add message type
+  LoRa.write(0);                       // add hopcount
 //  payload
   LoRa.write(0);                      // add payload data sensor
 //  LoRa.write(outgoing.length());        // add payload length
@@ -83,16 +88,44 @@ void sendRequest() {
   LoRa.endPacket();                     // finish packet and send it
   msgId++;                           // increment message ID
   Serial.println("pesan telah dikirim");
+  Serial.println("menunggu respon");
+  
 }
 
-void onReceive(int packetSize) {
-  if (packetSize == 0) return;          // if there's no packet, return
+void waitReply() {
+  int lora = 0;
+  int totTimeout = 0;
+  while(lora == 0){
+    lora = LoRa.parsePacket();
+    if (lora > 0) {
+      if(!onReceive(lora)){
+        lora = 0;
+      }      
+      Serial.println("ini receive");
+      Serial.println("");
+    }
+    if(totTimeout < 3){
+      if (millis() - lastRetransTime > timeout) {
+        Serial.println("Retransmisi...");
+        sendRequest();
+        lastRetransTime = millis();            // timestamp the message
+        totTimeout++;
+      }
+    } else {
+      return;
+    }
+  }
+}
+
+bool onReceive(int packetSize) {
+  if (packetSize == 0) return 0;          // if there's no packet, return
 
   // read packet header bytes:
   byte recipient = LoRa.read();          // recipient address
   byte sender = LoRa.read();            // sender address
   byte incomingMsgId = LoRa.read();     // incoming msg ID
   byte incomingMsgType = LoRa.read();     // incoming msg type
+  byte hopcount = LoRa.read();     // incoming msg type
   // read data sensor:
   byte incomingData = LoRa.read();      // incoming data sensor
 //  byte incomingLength = LoRa.read();    // incoming msg length
@@ -115,21 +148,21 @@ void onReceive(int packetSize) {
       Serial.println(incomingMsgId);
       Serial.print("type : ");
       Serial.println(incomingMsgType);
-      return;
+      return 0;
     }
-     push(sender, recipient, incomingMsgId);
-     msgId = incomingMsgId + 1;
+    push(sender, recipient, incomingMsgId);
     Serial.println("Received from: " + String(sender, DEC));
     Serial.println("Sent to: " + String(recipient, DEC));
     Serial.println("Message ID: " + String(incomingMsgId));
     Serial.println("Message Type: Response");
+    Serial.println("Hopcount: " + String(hopcount));
     Serial.print("data sensor Suhu: " + String(incomingData));
     Serial.println(" C");
   //  Serial.println("Message length: " + String(incomingLength));
   //  Serial.println("Message: " + incoming);
     Serial.println("RSSI: " + String(LoRa.packetRssi()));
     Serial.println("Snr: " + String(LoRa.packetSnr()));
-    
+    return 1;
   }
   else {
     Serial.println("This message is not for me.");
@@ -137,7 +170,7 @@ void onReceive(int packetSize) {
     Serial.println(incomingMsgId);
     Serial.print("type : ");
     Serial.println(incomingMsgType);
-    
+    return 0;
   }
   
   Serial.println(" ");
