@@ -11,7 +11,7 @@ const int irqPin = 2;         // change for your board; must be a hardware inter
 
 String outgoing;              // outgoing message
 byte msgCount = 1;            // count of outgoing messages
-byte NodeID = 2;                 // address of this device
+byte NodeID = 4;                 // address of this device
 byte Src = 0;
 byte Dst = 0;                // destination to send to
 byte NextHop = 0;
@@ -63,7 +63,7 @@ void onReceive(int packetSize) {
   byte incomingData = LoRa.read();      // incoming data sensor
 
   if (NextNode == NodeID) {
-    if (sender == 1 && recipient == 4){
+    if (sender == 1 && recipient == 5){
           Dst = 5;
           NextHop = recipient;
           delay(100);
@@ -71,16 +71,16 @@ void onReceive(int packetSize) {
           sendMessage(incomingData, incomingMsgId, sender, Dst, NextHop);
           LoRa.receive();                     // go back into receive mode 
         } 
-    else if (sender == 1 && recipient == 3){
-          Dst = 4;
+    else if (sender == 5 && recipient == 2){
+          Dst = 1;
           NextHop = recipient;
           delay(500);
           Serial.println("forward paket.");
           sendMessage(incomingData, incomingMsgId, sender, Dst, NextHop);
           LoRa.receive();                     // go back into receive mode
         }
-     else if (sender == 5 && recipient == 1){
-          Dst = 1;
+     else if (sender == 5 && recipient == 3){
+          Dst = 2;
           NextHop = recipient;
           delay(500);
           Serial.println("forward paket.");
