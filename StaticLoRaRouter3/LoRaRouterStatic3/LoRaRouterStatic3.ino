@@ -9,13 +9,11 @@ const int csPin = 10;          // LoRa radio chip select
 const int resetPin = 9;       // LoRa radio reset
 const int irqPin = 2;         // change for your board; must be a hardware interrupt pin
 
-byte msgCount = 1;            // count of outgoing messages
 byte NodeID = 4;                 // address of this device
 byte Dst = 0;                // destination to send to
 byte NextHop = 0;
 byte sensor;
-long lastSendTime = 0;        // last send time
-int interval = 2000;          // interval between sends
+byte delayTime[4];
 
 void setup() {
   Serial.begin(9600);                   // initialize serial
@@ -56,26 +54,34 @@ void search(byte Dst) {
   return 0;
 }
 
-void sendMessage(byte msgId, byte Src, byte Dst) {
+void sendMessage(byte msgId, byte Src, byte Dst, byte delayTime[]) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(Src);              // add destination address
   LoRa.write(Dst);             // add sender address
   LoRa.write(NextHop); 
   LoRa.write(msgId);                 // add message ID
   LoRa.write(sensor);   //data sensor
+  LoRa.write(delayTime[0]);
+  LoRa.write(delayTime[1]);
+  LoRa.write(delayTime[2]);
+  LoRa.write(delayTime[3]);
   LoRa.endPacket();                     // finish packet and send it
   Serial.print("menuju :");
   Serial.println(String(Dst, DEC));
   
 }
 
-void ForwardMessage(byte msgId, byte Src, byte Dst) {
+void ForwardMessage(byte msgId, byte Src, byte Dst, byte delayTime[]) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(Src);                      // add destination address
   LoRa.write(Dst);                      // add sender address
   LoRa.write(NextHop); 
   LoRa.write(msgId);                 // add message ID
   LoRa.write(0);                      //data sensor
+  LoRa.write(delayTime[0]);
+  LoRa.write(delayTime[1]);
+  LoRa.write(delayTime[2]);
+  LoRa.write(delayTime[3]);
   LoRa.endPacket();                     // finish packet and send it
   Serial.print("menuju :");
   Serial.println(String(Dst, DEC));
@@ -90,20 +96,24 @@ void onReceive(int packetSize) {
   byte NextNode = LoRa.read();            // Next address
   byte incomingMsgId = LoRa.read();     // incoming msg ID
   byte incomingData = LoRa.read();      // incoming data sensor
-
+  delayTime[0] = LoRa.read();
+  delayTime[1] = LoRa.read();
+  delayTime[2] = LoRa.read();
+  delayTime[3] = LoRa.read();
+  
  if (recipient == NodeID) { // jika penerima paket request adalah node ini
     //    kirim paket balasan
     Serial.print("Mengirim balaasan ke : ");
     Serial.println(recipient);
     search(sender); // method ini mengeset nexthop menuju tujuan
-    sendMessage(incomingMsgId, NodeID, sender);
+    sendMessage(incomingMsgId, NodeID, sender, delayTime);
     }       
       
    else if(NextNode == NodeID) {
      Serial.print("Meneruskan pesan ke : ");
      Serial.println(NextNode);
      search(recipient); // method ini mengeset nexthop menuju tujuan
-     ForwardMessage(incomingMsgId, sender, recipient);       
+     ForwardMessage(incomingMsgId, sender, recipient, delayTime);       
     }
     
    else {

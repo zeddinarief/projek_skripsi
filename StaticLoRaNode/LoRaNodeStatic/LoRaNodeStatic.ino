@@ -10,8 +10,7 @@ byte Src = 5;
 byte Dst = 0;      // destination to send to
 byte NextHop = 0;
 byte sensor;
-long lastSendTime = 0;        // last send time
-int interval = 2000;          // interval between sends
+byte delayTime[4];
 
 void setup() {
   Serial.begin(9600);                   // initialize serial
@@ -54,7 +53,7 @@ void search(byte Dst) {
   }
   return 0;
 }
-void sendMessage(byte msgId, byte Src, byte Dst) {
+void sendMessage(byte msgId, byte Src, byte Dst, byte delayTime[]) {
   
   LoRa.beginPacket();            // start packet
   LoRa.write(Src);              // add destination address
@@ -62,9 +61,11 @@ void sendMessage(byte msgId, byte Src, byte Dst) {
   LoRa.write(NextHop);             
   LoRa.write(msgId);                // add message ID
   LoRa.write(sensor);             // add payload
+  LoRa.write(delayTime[0]);
+  LoRa.write(delayTime[1]);
+  LoRa.write(delayTime[2]);
+  LoRa.write(delayTime[3]);
   LoRa.endPacket();                     // finish packet and send it
-//  msgCount++;                           // increment message ID
-//  Serial.println("isi paket > "+outgoing);
 }
 
 void onReceive(int packetSize) {
@@ -76,7 +77,11 @@ void onReceive(int packetSize) {
   byte NextNode = LoRa.read();            
   byte incomingMsgId = LoRa.read();     // incoming msg ID
   byte incomingData = LoRa.read();
-
+  delayTime[0] = LoRa.read();
+  delayTime[1] = LoRa.read();
+  delayTime[2] = LoRa.read();
+  delayTime[3] = LoRa.read();
+  
     Serial.println("\nRequest diterima");
     Serial.println("Received from: " + String(sender, DEC));
     Serial.println("For NodeID: " + String(recipient, DEC));
@@ -88,7 +93,7 @@ void onReceive(int packetSize) {
     if (recipient == NodeID) { // jika penerima paket request adalah node ini
     //    kirim paket balasan
     search(sender); // method ini mengeset nexthop menuju tujuan
-    sendMessage(incomingMsgId, NodeID, sender);
+    sendMessage(incomingMsgId, NodeID, sender, delayTime);
     Serial.println("\nMengirim Pesan");
     Serial.println("Send to : " + String(sender, DEC));
     Serial.println("From id: " + String(recipient, DEC));

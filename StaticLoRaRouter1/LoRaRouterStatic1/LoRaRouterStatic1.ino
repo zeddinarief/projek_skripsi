@@ -14,8 +14,7 @@ byte Dst = 0;                // destination to send to
 byte NextHop = 0;
 byte sensor;
 byte delayTime[4];                     // last send time
-         // interval between sends
-
+    
 
 void setup() {
   Serial.begin(9600);                   // initialize serial
@@ -74,13 +73,17 @@ void sendMessage(byte msgId, byte Src, byte Dst, byte delayTime[]) {
   
 }
 
-void ForwardMessage(byte msgId, byte Src, byte Dst) {
+void ForwardMessage(byte msgId, byte Src, byte Dst, byte delayTime[]) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(Src);                      // add destination address
   LoRa.write(Dst);                      // add sender address
   LoRa.write(NextHop); 
   LoRa.write(msgId);                 // add message ID
   LoRa.write(0);                      //data sensor
+  LoRa.write(delayTime[0]);
+  LoRa.write(delayTime[1]);
+  LoRa.write(delayTime[2]);
+  LoRa.write(delayTime[3]);
   LoRa.endPacket();                     // finish packet and send it
   Serial.print("menuju :");
   Serial.println(String(Dst, DEC));
@@ -114,7 +117,7 @@ void onReceive(int packetSize) {
      Serial.print("Meneruskan pesan ke : ");
      Serial.println(NextNode);
      search(recipient); // method ini mengeset nexthop menuju tujuan
-     ForwardMessage(incomingMsgId, sender, recipient);       
+     ForwardMessage(incomingMsgId, sender, recipient,  delayTime);       
     }
     
    else {
