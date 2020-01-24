@@ -27,7 +27,7 @@ byte msgId = 1;            // count of outgoing messages
 byte localAddress = 6;     // address of this device
 byte destination = 2;      // destination to send to
 byte suhu;
-long lastSendTime = 0;        // last send time
+long lastPop = 0;        // last pop time
 int interval = 10000;          // interval between delete old record
 
 typedef struct              // untuk menyimpan record paket yang pernah lewat
@@ -62,39 +62,63 @@ void setup() {
 }
 
 void loop() {
-  if (millis() - lastSendTime > interval) {
+  if (millis() - lastPop > interval) {
     pop();
 //    show();
 //    Serial.println("");
-    lastSendTime = millis();            // timestamp the message
+    lastPop = millis();            // timestamp the message
   }
   
   suhu = dht.readTemperature();
   onReceive(LoRa.parsePacket());
 }
 
-void sendMessage(byte dest, byte id, byte hopcount, byte sensor) {
+void sendMessage(byte dest, byte id, byte sendTime[], byte sensor, byte reqId, String path) {
+//void sendMessage(byte dest, byte id, byte sensor, byte reqId) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(dest);              // add destination address
   LoRa.write(localAddress);       // add sender address
   LoRa.write(id);                 // add message ID
   LoRa.write(1);                 // add message type
-  LoRa.write(hopcount);                 // add message type
+  LoRa.write(reqId);             // add id pkt request
   LoRa.write(sensor);             // add payload data sensor
+  LoRa.write(sendTime[0]);          // add sendTime
+  LoRa.write(sendTime[1]);          // add sendTime
+  LoRa.write(sendTime[2]);          // add sendTime
+  LoRa.write(sendTime[3]);          // add sendTime
+  LoRa.write(path.length());        // add payload length
+  LoRa.print(path);                 // add payload
   LoRa.endPacket();                     // finish packet and send it
   msgId++;
 }
 
 void onReceive(int packetSize) {
   if (packetSize == 0) return;          // if there's no packet, return
+//  Serial.println("paket size : " + String(packetSize));
   
   // read packet header bytes:
   byte recipient = LoRa.read();          // recipient address
   byte sender = LoRa.read();            // sender address
   byte incomingMsgId = LoRa.read();     // incoming msg ID
   byte incomingMsgType = LoRa.read();     // incoming msg type
-  byte hopcount = LoRa.read();     // hopcount
-  byte incomingData = LoRa.read();      // incoming data sensor
+//  send time info
+  byte waktu[4];
+  waktu[0] = LoRa.read();
+  waktu[1] = LoRa.read();
+  waktu[2] = LoRa.read();
+  waktu[3] = LoRa.read();
+  byte pathLength = LoRa.read();    // incoming msg length
+  String path = "";                 // payload of packet
+
+  while (LoRa.available()) {            // can't use readString() in callback, so
+    path += (char)LoRa.read();      // add bytes one by one
+  }
+
+  if (pathLength != path.length()) {   // check length for error
+    Serial.println("error: message length does not match length");
+    return;                             // skip rest of function
+  }
+  path += "-" + String(localAddress);
 
   Serial.println("Receiving request ....");
 
@@ -114,15 +138,15 @@ void onReceive(int packetSize) {
     Serial.print(incomingMsgId);
     Serial.println(" is not for me.");
     Serial.println("");
-      return;
-    }
+    return;
+  }
     
-  push(sender, recipient, incomingMsgId);
-  byte newhopcount = hopcount + 1;
+//  byte newhopcount = hopcount + 1;
   Serial.print("suhu: ");
   Serial.print(suhu);
   Serial.println(" C");
-  sendMessage(sender, msgId, newhopcount, suhu);
+  sendMessage(sender, msgId, waktu, suhu, incomingMsgId, path);
+//  sendMessage(sender, msgId, suhu, incomingMsgId);
   Serial.println("Sending response ...");
 //  LoRa.receive();
   // if message is for this device, or broadcast, print details:
@@ -133,6 +157,7 @@ void onReceive(int packetSize) {
   Serial.println("RSSI: " + String(LoRa.packetRssi()));
   Serial.println("Snr: " + String(LoRa.packetSnr()));
   Serial.println();
+  push(sender, recipient, incomingMsgId);
 }
 
 void pop() {
