@@ -17,7 +17,7 @@ byte localAddress = 4;     // address of this device
 //byte localAddress = 6;     // address of this device
 
 byte currentMsgType;
-long lastSendTime = 0;        // last send time
+long lastPop = 0;        // last send time
 int interval = 10000;          // interval between delete old record
 
 typedef struct
@@ -51,11 +51,11 @@ void setup() {
 }
 
 void loop() {
-  if (millis() - lastSendTime > interval) {
+  if (millis() - lastPop > interval) {
     pop();
 //    show();
 //    Serial.println("");
-    lastSendTime = millis();            // timestamp the message
+    lastPop = millis();            // timestamp the message
   }
   if (Serial.available() > 0) {    // is a character available?
     char in = Serial.read();       // get the character
@@ -68,28 +68,74 @@ void loop() {
   onReceive(LoRa.parsePacket());
 }
 
-void forwardMessage(int recipient, byte sender, byte msgId, byte msgType, byte hopcount, byte sensor) {
+//forward request
+void forwardRequest(int recipient, byte sender, byte msgId, byte msgType, byte sendTime[], String path) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(recipient);              // add destination address
   LoRa.write(sender);                 // add sender address
   LoRa.write(msgId);                 // add message ID
   LoRa.write(msgType);                 // add message type
-  LoRa.write(hopcount);                 // add message type
-//  payload
-  LoRa.write(sensor);                   // add data sensor
+//  add message sendTIme
+  LoRa.write(sendTime[0]);
+  LoRa.write(sendTime[1]);
+  LoRa.write(sendTime[2]);
+  LoRa.write(sendTime[3]);
+  LoRa.write(path.length());
+  LoRa.print(path);
+  LoRa.endPacket();                     // finish packet and send it
+}
+
+//forward reply
+void forwardReply(int recipient, byte sender, byte msgId, byte msgType, byte sendTime[], byte sensor, byte reqId, String path) {
+  LoRa.beginPacket();                   // start packet
+  LoRa.write(recipient);              // add destination address
+  LoRa.write(sender);                 // add sender address
+  LoRa.write(msgId);                 // add message ID
+  LoRa.write(msgType);                 // add message type
+  LoRa.write(reqId);             // add id pkt request
+  LoRa.write(sensor);             // add payload data sensor
+//  add message sendTIme
+  LoRa.write(sendTime[0]);
+  LoRa.write(sendTime[1]);
+  LoRa.write(sendTime[2]);
+  LoRa.write(sendTime[3]);
+  LoRa.write(path.length());
+  LoRa.print(path);
   LoRa.endPacket();                     // finish packet and send it
 }
 
 void onReceive(int packetSize) {
-  if (packetSize == 0) return;          // if there's no packet, return
+  if (packetSize < 10) return;          // if there's no packet, return
 
   // read packet header bytes:
   byte recipient = LoRa.read();          // recipient address
   byte sender = LoRa.read();            // sender address
   byte incomingMsgId = LoRa.read();     // incoming msg ID
   byte incomingMsgType = LoRa.read();     // incoming msg type
-  byte hopcount = LoRa.read();     // hopcount
-  byte incomingData = LoRa.read();      // incoming data sensor
+  byte reqId = 0;           // id paket request
+  byte incomingData = 0;      // incoming data sensor  
+  if (incomingMsgType == 1) {
+    reqId = LoRa.read();           // id paket request
+    incomingData = LoRa.read();      // incoming data sensor
+  }
+  byte waktu[4];
+  waktu[0] = LoRa.read();
+  waktu[1] = LoRa.read();
+  waktu[2] = LoRa.read();
+  waktu[3] = LoRa.read();
+  //  path info
+  byte pathLength = LoRa.read();    // incoming msg length
+  String path = "";                 // payload of packet
+
+  while (LoRa.available()) {            // can't use readString() in callback, so
+    path += (char)LoRa.read();      // add bytes one by one
+  }
+
+  if (pathLength != path.length()) {   // check length for error
+    Serial.println("error: message length does not match length");
+    return;                             // skip rest of function
+  }
+  path += String(localAddress);         // add path local address
 
   // if the recipient isn't this device or broadcast,
   if (recipient != localAddress) {
@@ -99,13 +145,20 @@ void onReceive(int packetSize) {
       Serial.println(" has been received before");
       return;
     }
-    push(sender, recipient, incomingMsgId);
-    byte newhopcount = hopcount + 1;
-    forwardMessage(recipient, sender, incomingMsgId, incomingMsgType, newhopcount, incomingData);  
+//    byte newhopcount = hopcount + 1;
+    if (incomingMsgType == 0) {
+      forwardRequest(recipient, sender, incomingMsgId, incomingMsgType, waktu, path);  
+    } else if (incomingMsgType == 1) {
+      forwardReply(recipient, sender, incomingMsgId, incomingMsgType, waktu, incomingData, reqId, path);  
+    }
+
     Serial.print("forward packet id:");
     Serial.println(incomingMsgId);
     Serial.print("from: ");
     Serial.println(sender);
+    Serial.print("coba size paket: ");
+    Serial.println(packetSize);
+    push(sender, recipient, incomingMsgId);
   } 
   
   Serial.println();
