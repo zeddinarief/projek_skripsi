@@ -20,7 +20,7 @@ int interval = 10000;          // interval between delete old record
 int timeout = 3000;
 long lastRetransTime = 0;        // last send time
 
-typedef struct
+typedef struct                 // untuk menyimpan record paket yang pernah lewat
  {
      byte currentSender;
      byte currentRecipient;
@@ -30,7 +30,7 @@ typedef struct
 record_type record[8];
 
 void setup() {
-  Serial.begin(9600);                   // initialize serial
+  Serial.begin(19200);                   // initialize serial
   while (!Serial);
 
   Serial.println("LoRa Gateway Node");
@@ -69,7 +69,7 @@ void loop() {
     }
   }
 //  parse for a packet, and call onReceive with the result:
-//  onReceive(LoRa.parsePacket());
+  onReceive(LoRa.parsePacket());
 }
 
 void sendRequest() {
@@ -150,10 +150,10 @@ bool onReceive(int packetSize) {
   while (LoRa.available()) {            // can't use readString() in callback, so
     path += (char)LoRa.read();      // add bytes one by one
   }
-
+  
   if (pathLength != path.length()) {   // check length for error
-    Serial.println("error: message length does not match length");
-    return;                             // skip rest of function
+//    Serial.println("error: message length does not match length");
+    return 0;                             // skip rest of function
   }
   
   unsigned long sendTime = (unsigned long)waktu[3] << 24 

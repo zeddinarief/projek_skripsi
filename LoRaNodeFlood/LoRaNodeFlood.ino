@@ -40,7 +40,7 @@ typedef struct              // untuk menyimpan record paket yang pernah lewat
 record_type record[8];
 
 void setup() {
-  Serial.begin(9600);                   // initialize serial
+  Serial.begin(19200);                   // initialize serial
   dht.begin();
   while (!Serial);
 
@@ -70,6 +70,7 @@ void loop() {
   }
   
   suhu = dht.readTemperature();
+//  suhu = 20;
   onReceive(LoRa.parsePacket());
 }
 
@@ -115,7 +116,7 @@ void onReceive(int packetSize) {
   }
 
   if (pathLength != path.length()) {   // check length for error
-    Serial.println("error: message length does not match length");
+//    Serial.println("error: message length does not match length");
     return;                             // skip rest of function
   }
   path += "-" + String(localAddress);
@@ -156,6 +157,7 @@ void onReceive(int packetSize) {
   Serial.println("Message type: Request");
   Serial.println("RSSI: " + String(LoRa.packetRssi()));
   Serial.println("Snr: " + String(LoRa.packetSnr()));
+  Serial.println(path);
   Serial.println();
   push(sender, recipient, incomingMsgId);
 }
