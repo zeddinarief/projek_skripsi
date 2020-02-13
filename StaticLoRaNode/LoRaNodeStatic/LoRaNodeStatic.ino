@@ -15,8 +15,9 @@ byte delayTime[4];
 void setup() {
   Serial.begin(9600);                   // initialize serial
   while (!Serial); 
-
-  Serial.println("LoRa Sensor");
+  Serial.println("|-------------|");
+  Serial.println("| LoRa Sensor |");
+  Serial.println("|-------------|");
 
   // override the default CS, reset, and IRQ pins (optional)
   LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, RQ pin
@@ -43,7 +44,10 @@ void loop() {
     byte SetNextHop;
  }  Set_tabel[4];
 
-  Set_tabel Tabel={{1,3},{2,4},{3,3},{4,4}};
+  Set_tabel Tabel={{1,3},
+                   {2,4},
+                   {3,3},
+                   {4,4}};
 
 void search(byte Dst) {
   for(int x=0; x<4; x++) {  
@@ -74,46 +78,33 @@ void onReceive(int packetSize) {
   // read packet header bytes:
   byte sender = LoRa.read();          // recipient address
   byte recipient = LoRa.read();            // sender address
-  byte NextNode = LoRa.read();            
+  byte nextNode = LoRa.read();            
   byte incomingMsgId = LoRa.read();     // incoming msg ID
   byte incomingData = LoRa.read();
   delayTime[0] = LoRa.read();
   delayTime[1] = LoRa.read();
   delayTime[2] = LoRa.read();
   delayTime[3] = LoRa.read();
-  
-    Serial.println("\nRequest diterima");
-    Serial.println("Received from: " + String(sender, DEC));
-    Serial.println("For NodeID: " + String(recipient, DEC));
-    Serial.println("Message Id : "+ String(incomingMsgId) );
-    Serial.println("RSSI: " + String(LoRa.packetRssi()));
-    Serial.println("Snr: " + String(LoRa.packetSnr()));
-    Serial.println("---------------------");
     
-    if (recipient == NodeID) { // jika penerima paket request adalah node ini
+    if (recipient == NodeID && nextNode == NodeID) { // jika penerima paket request adalah node ini
     //    kirim paket balasan
+    Serial.println("\nRequest diterima");
+    Serial.println("diterima dari NodeID : " + String(sender, DEC));
+    Serial.println("---------------------");
     search(sender); // method ini mengeset nexthop menuju tujuan
     sendMessage(incomingMsgId, NodeID, sender, delayTime);
-    Serial.println("\nMengirim Pesan");
-    Serial.println("Send to : " + String(sender, DEC));
-    Serial.println("From id: " + String(recipient, DEC));
+    Serial.println("\nMengirim Balasan Pesan");
+    Serial.println("Melewati NodeID : " + String(NextHop, DEC));
+    Serial.println("untuk NodeID : " + String(sender, DEC));
+    Serial.println("Dari NodeID: " + String(recipient, DEC));
     Serial.println("Data Sensor : "+String(sensor));
     Serial.println("Message Id : "+String(incomingMsgId));
-    Serial.println("RSSI: " + String(LoRa.packetRssi()));
-    Serial.println("Snr: " + String(LoRa.packetSnr()));
-    Serial.println();
-    Serial.println();
-    Serial.println();
-    Serial.println();
-    Serial.println();
-    Serial.println();
-    Serial.println();
-    Serial.println();
+    Serial.println("\n\n\n");
     }       
       
    else {
-    Serial.print(String(NextNode));
-    Serial.println(" This message is not for me");
+//    Serial.print("Pesan untuk NodeID: "+String(nextNode));
+//    Serial.println("\n This message is not for me");
     }
 }
 

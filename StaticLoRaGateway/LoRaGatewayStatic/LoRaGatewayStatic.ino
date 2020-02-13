@@ -20,8 +20,9 @@ byte nextHop = 0;
 void setup() {
   Serial.begin(9600);                   // initialize serial
   while (!Serial);
-  
-  Serial.println("LoRa Gateway");
+  Serial.println("|--------------|");
+  Serial.println("| LoRa Gateway |");
+  Serial.println("|--------------|");
 //  Serial.println(sizeof(LoRa));
   // override the default CS, reset, and IRQ pins (optional)
   LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
@@ -33,7 +34,7 @@ void setup() {
   
   LoRa.onReceive(onReceive);
   LoRa.receive();
-  Serial.print("LoRa init succeeded.\nNode ID : ");
+  Serial.print("LoRa init succeeded.\nNodeID : ");
   Serial.println(nodeID);
 }
 
@@ -44,9 +45,7 @@ void loop() {
     search(Dst);
     sendMessage();
     Serial.print("\n\nSending request to Node : "); 
-    Serial.println(Dst);   
-    Serial.print("\n\nSending Time : "); 
-    
+    Serial.println(Dst);       
   }
   else if (in == '3'){
     Dst = 3;
@@ -69,7 +68,7 @@ void loop() {
     Serial.print("Sending request to Node : "); 
     Serial.println(Dst);    
     }
-  LoRa.receive();
+    LoRa.receive();
     delay(100);
 }
 
@@ -79,7 +78,8 @@ typedef struct
     byte setNextHop;
  }  set_tabel[4];
 
-  set_tabel tabel={{2,2},{3,3},{4,2},{5,3}};
+  set_tabel tabel={{2,2},
+      {3,3},{4,2},{5,3}};
 
 void search(byte Dst) {
   for(int x=0; x<4; x++) {  
@@ -113,46 +113,43 @@ void sendMessage() {
 }
 
 void onReceive(int packetSize) {
-  if (packetSize == 0) return;          // if there's no packet, return
-  byte sender = LoRa.read();          // sender address
-  byte recipient = LoRa.read();         // recipient address    
-  byte nextNode = LoRa.read();            // Next address
-  byte incomingMsgId = LoRa.read();     // incoming msg ID
-  byte incomingData = LoRa.read();      // incoming data sensor
-  unsigned long lastTime = millis();
-  byte delayTime[4];
-  delayTime[0] = LoRa.read();
-  delayTime[1] = LoRa.read();
-  delayTime[2] = LoRa.read();
-  delayTime[3] = LoRa.read();
-
-  unsigned long recvTime = (unsigned long)delayTime[0]      |
-                           (unsigned long)delayTime[1] << 8 |
-                           (unsigned long)delayTime[2] << 16|
-                           (unsigned long)delayTime[3] << 24;
-                           
-  double lastDelay = (double)(lastTime - recvTime)/1000;
-                           
-  Serial.println();
-  Serial.println("Pesan respon");
-  Serial.println("------------------------");
-  // if the recipient isn't this device or broadcast,
-  if (recipient != nodeID) {
-    Serial.println("This message is not for me.");
+    if (packetSize == 0) return;          // if there's no packet, return
+    byte sender = LoRa.read();          // sender address
+    byte recipient = LoRa.read();         // recipient address    
+    byte nextNode = LoRa.read();            // Next address
+    byte incomingMsgId = LoRa.read();     // incoming msg ID
+    byte incomingData = LoRa.read();      // incoming data sensor
+    unsigned long lastTime = millis();
+    byte delayTime[4];
+    delayTime[0] = LoRa.read();
+    delayTime[1] = LoRa.read();
+    delayTime[2] = LoRa.read();
+    delayTime[3] = LoRa.read();
+  
+    unsigned long recvTime = (unsigned long)delayTime[0]      |
+                             (unsigned long)delayTime[1] << 8 |
+                             (unsigned long)delayTime[2] << 16|
+                             (unsigned long)delayTime[3] << 24;
+                             
+    double lastDelay = (double)(lastTime - recvTime)/1000;
+                             
+    Serial.println();
+    Serial.println("Pesan respon");
+    Serial.println("------------------------");
+    // if the recipient isn't this device or broadcast,
+    
+  if (recipient == nodeID && nextNode == nodeID) {
+    Serial.println("Pesan respon dari NodeID: " + String(sender, DEC));
+    Serial.println("Dikirimkan ke NodeID: " + String(recipient, DEC));
+    Serial.println("Message ID: " + String(incomingMsgId));
+    Serial.println("data sensor: " + String(incomingData));
+    Serial.println("last Delay: " + String(lastDelay)+" Sec.");
+    Serial.println();
                               // skip rest of function
   }
 
  else {
-    Serial.println("Receive respon from: " + String(sender, DEC));
-    Serial.println("Sent to: " + String(recipient, DEC));
-    Serial.println("Message ID: " + String(incomingMsgId));
-    Serial.println("data sensor: " + String(incomingData));
-    Serial.println("RSSI: " + String(LoRa.packetRssi()));
-    Serial.println("Snr: " + String(LoRa.packetSnr()));
-    Serial.println("Last Time : " + String(lastTime));
-    Serial.println("Recv Time : " + String(recvTime));
-    Serial.println("last Delay: " + String(lastDelay));
-    Serial.println();
+//      Serial.println("This message is not for me.");
 
   }
 }
