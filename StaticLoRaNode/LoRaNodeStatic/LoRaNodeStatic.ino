@@ -32,8 +32,7 @@ void setup() {
   Serial.println(NodeID);
 }
 
-void loop() {  
-    sensor = random(100);  
+void loop() {   
     delay(100); 
     LoRa.receive();
 }
@@ -57,7 +56,7 @@ void search(byte Dst) {
   }
   return 0;
 }
-void sendMessage(byte msgId, byte Src, byte Dst, byte delayTime[]) {
+void sendMessage(byte sensor, byte msgId, byte Src, byte Dst, byte delayTime[]) {
   
   LoRa.beginPacket();            // start packet
   LoRa.write(Src);              // add destination address
@@ -85,21 +84,21 @@ void onReceive(int packetSize) {
   delayTime[1] = LoRa.read();
   delayTime[2] = LoRa.read();
   delayTime[3] = LoRa.read();
+  sensor = random(25,90); 
     
     if (recipient == NodeID && nextNode == NodeID) { // jika penerima paket request adalah node ini
     //    kirim paket balasan
-    Serial.println("\nRequest diterima");
-    Serial.println("diterima dari NodeID : " + String(sender, DEC));
+    Serial.println("\nRequest from NodeID : " + String(sender, DEC));
     Serial.println("---------------------");
+    Serial.println("\nResponse message");
+    Serial.println("Receive from NodeID : " + String(recipient, DEC));
+    Serial.println("Send to NodeID : " + String(sender, DEC));
+    Serial.println("Next Node : " + String(NextHop, DEC));
+    Serial.println("Message ID : "+String(incomingMsgId));
+    Serial.println("Sensor data : "+String(sensor));
+    Serial.println("");
     search(sender); // method ini mengeset nexthop menuju tujuan
-    sendMessage(incomingMsgId, NodeID, sender, delayTime);
-    Serial.println("\nMengirim Balasan Pesan");
-    Serial.println("Melewati NodeID : " + String(NextHop, DEC));
-    Serial.println("untuk NodeID : " + String(sender, DEC));
-    Serial.println("Dari NodeID: " + String(recipient, DEC));
-    Serial.println("Data Sensor : "+String(sensor));
-    Serial.println("Message Id : "+String(incomingMsgId));
-    Serial.println("\n\n\n");
+    sendMessage(sensor, incomingMsgId, NodeID, sender, delayTime);
     }       
       
    else {

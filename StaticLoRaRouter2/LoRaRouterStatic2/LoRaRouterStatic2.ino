@@ -29,12 +29,11 @@ void setup() {
   
   LoRa.onReceive(onReceive);
   LoRa.receive();
-  Serial.print("LoRa init succeeded. \n NodeID : ");
+  Serial.print("LoRa init succeeded.\n NodeID : ");
   Serial.println(NodeID);
 }
 
 void loop() {
-  sensor = random(100);
   delay(100);
   LoRa.receive();
 }
@@ -59,7 +58,7 @@ void search(byte Dst) {
   return 0;
 }
 
-void sendMessage(byte msgId, byte Src, byte Dst, byte delayTime[]) {
+void sendMessage(byte sensor, byte msgId, byte Src, byte Dst, byte delayTime[]) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(Src);              // add destination address
   LoRa.write(Dst);             // add sender address
@@ -74,21 +73,19 @@ void sendMessage(byte msgId, byte Src, byte Dst, byte delayTime[]) {
   
 }
 
-void ForwardMessage(byte msgId, byte Src, byte Dst, byte delayTime[]) {
+void ForwardMessage(byte data, byte msgId, byte Src, byte Dst, byte delayTime[]) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(Src);                      // add destination address
   LoRa.write(Dst);                      // add sender address
   LoRa.write(NextHop); 
   LoRa.write(msgId);                 // add message ID
-  LoRa.write(0);                      //data sensor
+  LoRa.write(data);                      //data sensor
   LoRa.write(delayTime[0]);
   LoRa.write(delayTime[1]);
   LoRa.write(delayTime[2]);
   LoRa.write(delayTime[3]);
   LoRa.endPacket();                     // finish packet and send it
-//  Serial.print("menuju :");
-//  Serial.println(String(Dst, DEC));
-  
+
 }
 
 void onReceive(int packetSize) {
@@ -102,31 +99,31 @@ void onReceive(int packetSize) {
   delayTime[1] = LoRa.read();
   delayTime[2] = LoRa.read();
   delayTime[3] = LoRa.read();
-  Serial.println("\nRequest diterima!");
+  sensor = random(25 ,90);
+  Serial.println("\nMessage request!");
   
-  if (recipient == NodeID && nextNode == NodeID) { // jika penerima paket request adalah node ini
-    //    kirim paket balasan
-    Serial.print("Mengirim balasan ke NodeID : ");
-    Serial.println(recipient);
-    Serial.println("\nMengirim Pesan");
-    Serial.println("Untuk NodeID : " + String(sender, DEC));
-    Serial.println("Dari NodeID : " + String(recipient, DEC));
-    Serial.println("Data Sensor : "+String(sensor));
-    Serial.println("Message Id : "+String(incomingMsgId));
+  if (recipient == NodeID && nextNode == NodeID) { // jika penerima paket request adalah node ini kirim paket balasan
+    Serial.println("\nSend message");
+    Serial.println("---------------------");
+    Serial.println("Receive from NodeID : " + String(recipient, DEC));
+    Serial.println("Send to NodeID : " + String(sender, DEC));
+    Serial.println("Message ID : "+String(incomingMsgId));
+    Serial.println("Sensor data : "+String(sensor));
+    Serial.println("");
     search(sender); // method ini mengeset nexthop menuju tujuan
-    sendMessage(incomingMsgId, NodeID, sender, delayTime);
+    sendMessage(sensor, incomingMsgId, NodeID, sender, delayTime);
     }       
       
    else if(nextNode == NodeID) {
-     Serial.print("\nMeneruskan pesan ke NodeID : ");
+     Serial.print("\nforward message to NodeID : ");
      Serial.println(recipient);
      search(recipient); // method ini mengeset nexthop menuju tujuan
-     ForwardMessage(incomingMsgId, sender, recipient, delayTime);       
+     ForwardMessage(incomingData, incomingMsgId, sender, recipient, delayTime);       
     }
     
    else {
-    Serial.print(String(nextNode));
-    Serial.println(" This message is not for me");
+//    Serial.print(String(nextNode));
+//    Serial.println(" This message is not for me");
     }
 }
 

@@ -79,7 +79,9 @@ typedef struct
  }  set_tabel[4];
 
   set_tabel tabel={{2,2},
-      {3,3},{4,2},{5,3}};
+                   {3,3},
+                   {4,2},
+                   {5,3}};
 
 void search(byte Dst) {
   for(int x=0; x<4; x++) {  
@@ -132,18 +134,16 @@ void onReceive(int packetSize) {
                              (unsigned long)delayTime[3] << 24;
                              
     double lastDelay = (double)(lastTime - recvTime)/1000;
-                             
-    Serial.println();
-    Serial.println("Pesan respon");
-    Serial.println("------------------------");
-    // if the recipient isn't this device or broadcast,
-    
+
   if (recipient == nodeID && nextNode == nodeID) {
-    Serial.println("Pesan respon dari NodeID: " + String(sender, DEC));
-    Serial.println("Dikirimkan ke NodeID: " + String(recipient, DEC));
+    Serial.println();
+    Serial.println("Response message");
+    Serial.println("------------------------");
+    Serial.println("Response message from NodeID: " + String(sender, DEC));
+    Serial.println("Send to NodeID: " + String(recipient, DEC));
     Serial.println("Message ID: " + String(incomingMsgId));
-    Serial.println("data sensor: " + String(incomingData));
-    Serial.println("last Delay: " + String(lastDelay)+" Sec.");
+    Serial.println("Sensor Data: " + String(incomingData));
+    Serial.println("Send and receive time: " + String(lastDelay)+" Sec.");
     Serial.println();
                               // skip rest of function
   }
