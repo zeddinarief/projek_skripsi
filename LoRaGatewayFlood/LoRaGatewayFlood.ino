@@ -155,17 +155,6 @@ bool onReceive(int packetSize) {
 //    Serial.println("error: message length does not match length");
     return 0;                             // skip rest of function
   }
-  
-  unsigned long sendTime = (unsigned long)waktu[3] << 24 
-                        | (unsigned long)waktu[2] << 16
-                        | (unsigned long)waktu[1] << 8
-                        | (unsigned long)waktu[0];
-  
-  double transmitDelay = (double)(recvTime - sendTime) / 2000;
-//  Serial.print("send time: ");
-//  Serial.println(sendTime);
-//  Serial.print("recv time: ");
-//  Serial.println(recvTime);
 
   // if the recipient isn't this device or broadcast,
   if (recipient == localAddress && incomingMsgType == 1) {
@@ -178,6 +167,12 @@ bool onReceive(int packetSize) {
       return 0;                // if there's no packet match, return 0 or false
     }
     push(sender, recipient, incomingMsgId);
+    unsigned long sendTime = (unsigned long)waktu[3] << 24 
+                          | (unsigned long)waktu[2] << 16
+                          | (unsigned long)waktu[1] << 8
+                          | (unsigned long)waktu[0];
+    
+    double transmitDelay = (double)(recvTime - sendTime) / 2000;
     Serial.println("Received from: " + String(sender, DEC));
     Serial.println("Sent to: " + String(recipient, DEC));
     Serial.println("Message ID: " + String(incomingMsgId));
