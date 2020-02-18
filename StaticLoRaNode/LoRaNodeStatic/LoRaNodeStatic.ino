@@ -43,9 +43,9 @@ void loop() {
     byte SetNextHop;
  }  Set_tabel[4];
 
-  Set_tabel Tabel={{1,3},
+  Set_tabel Tabel={{1,4},
                    {2,4},
-                   {3,3},
+                   {3,4},
                    {4,4}};
 
 void search(byte Dst) {
@@ -93,7 +93,6 @@ void onReceive(int packetSize) {
     Serial.println("\nResponse message");
     Serial.println("Receive from NodeID : " + String(recipient, DEC));
     Serial.println("Send to NodeID : " + String(sender, DEC));
-    Serial.println("Next Node : " + String(NextHop, DEC));
     Serial.println("Message ID : "+String(incomingMsgId));
     Serial.println("Sensor data : "+String(sensor));
     Serial.println("");

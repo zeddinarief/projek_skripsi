@@ -81,7 +81,7 @@ typedef struct
   set_tabel tabel={{2,2},
                    {3,3},
                    {4,2},
-                   {5,3}};
+                   {5,2}};
 
 void search(byte Dst) {
   for(int x=0; x<4; x++) {  
