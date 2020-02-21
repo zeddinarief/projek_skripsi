@@ -39,35 +39,29 @@ void setup() {
 }
 
 void loop() {
+ if (Serial.available() > 0) {
   char in = Serial.read();
   if (in == '2'){    
     Dst = 2;   
     search(Dst);
-    sendMessage();
-    Serial.print("\n\nSending request to Node : "); 
-    Serial.println(Dst);       
+    sendMessage();       
   }
   else if (in == '3'){
     Dst = 3;
     search(Dst) ;
-    sendMessage();
-    Serial.print("Sending request to Node : "); 
-    Serial.println(Dst);          
+    sendMessage();          
     }
   else if (in == '4'){
     Dst = 4;   
     search(Dst);
-    sendMessage();
-    Serial.print("Sending request to Node : "); 
-    Serial.println(Dst);  
+    sendMessage();  
     }
     else if (in == '5'){
     Dst = 5;   
     search(Dst);
-    sendMessage();
-    Serial.print("Sending request to Node : "); 
-    Serial.println(Dst);    
+    sendMessage();   
     }
+   }  
     LoRa.receive();
     delay(100);
 }
@@ -111,6 +105,9 @@ void sendMessage() {
   LoRa.write(waktu[3]);
   LoRa.endPacket();                     // finish packet and send it
   msgID++;                           // increment message ID
+  Serial.print("\nSending request to Node : "); 
+  Serial.println(Dst);  
+  Serial.println("--------------------------");
   
 }
 

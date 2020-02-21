@@ -1,10 +1,6 @@
 #include <SPI.h>              // include libraries
 #include <LoRa.h>
 
-#ifdef ARDUINO_SAMD_MKRWAN1300
-#error "This example is not compatible with the Arduino MKR WAN 1300 board!"
-#endif
-
 const int csPin = 10;          // LoRa radio chip select
 const int resetPin = 9;       // LoRa radio reset
 const int irqPin = 2;         // change for your board; must be a hardware interrupt pin
@@ -22,6 +18,8 @@ void setup() {
   Serial.println(" ---------------");
   Serial.println("| LoRa Router 1 |");
   Serial.println(" ---------------");
+
+  LoRa.setPins(csPin, resetPin, irqPin);
 
   if (!LoRa.begin(433E6)) {             
     Serial.println("LoRa init failed. Check your connections.");
@@ -58,7 +56,6 @@ void search(byte Dst) {
   }
   return 0;
 }
-
 
 void sendMessage(byte sensor, byte msgId, byte Src, byte Dst, byte delayTime[]) {
   LoRa.beginPacket();                   // start packet

@@ -18,8 +18,7 @@ void setup() {
   Serial.println("|-------------|");
   Serial.println("| LoRa Sensor |");
   Serial.println("|-------------|");
-
-  // override the default CS, reset, and IRQ pins (optional)
+  
   LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, RQ pin
 
   if (!LoRa.begin(433E6)) {             // initialize ratio at 915 MHz
@@ -56,6 +55,7 @@ void search(byte Dst) {
   }
   return 0;
 }
+
 void sendMessage(byte sensor, byte msgId, byte Src, byte Dst, byte delayTime[]) {
   
   LoRa.beginPacket();            // start packet
@@ -86,7 +86,7 @@ void onReceive(int packetSize) {
   delayTime[3] = LoRa.read();
   sensor = random(25,90); 
     
-    if (recipient == NodeID && nextNode == NodeID) { // jika penerima paket request adalah node ini
+  if (recipient == NodeID && nextNode == NodeID) { // jika penerima paket request adalah node ini
     //    kirim paket balasan
     Serial.println("\nRequest from NodeID : " + String(sender, DEC));
     Serial.println("---------------------");
