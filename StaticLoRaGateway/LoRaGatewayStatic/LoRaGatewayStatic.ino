@@ -11,10 +11,11 @@ const int resetPin = 9;       // LoRa radio reset
 const int irqPin = 2;         // change for your board; must be a hardware interrupt pin
 
 byte msgID = 1;            // count of outgoing messages
-byte nodeID = 1;     // address of this device
+byte NodeID = 1;     // address of this device
 byte Src = 1;
 byte Dst = 0;      // destination to send to
 byte nextHop = 0;
+String path;
 
       
 void setup() {
@@ -35,7 +36,7 @@ void setup() {
   LoRa.onReceive(onReceive);
   LoRa.receive();
   Serial.print("LoRa init succeeded.\nNodeID : ");
-  Serial.println(nodeID);
+  Serial.println(NodeID);
 }
 
 void loop() {
@@ -83,7 +84,7 @@ void search(byte Dst) {
       nextHop = tabel[x].setNextHop;
     }
   }
-  return 0;
+
 }
 
 void sendMessage() {
@@ -103,6 +104,9 @@ void sendMessage() {
   LoRa.write(waktu[1]);
   LoRa.write(waktu[2]);
   LoRa.write(waktu[3]);
+  path = String (NodeID);
+  LoRa.write(path.length());        // add payload length
+  LoRa.print(path);
   LoRa.endPacket();                     // finish packet and send it
   msgID++;                           // increment message ID
   Serial.print("\nSending request to Node : "); 
@@ -124,15 +128,25 @@ void onReceive(int packetSize) {
     delayTime[1] = LoRa.read();
     delayTime[2] = LoRa.read();
     delayTime[3] = LoRa.read();
+    byte pathLength = LoRa.read();    // incoming msg length
+    String path = "";                 // payload of packet
   
+    while (LoRa.available()) {            // can't use readString() in callback, so
+      path += (char)LoRa.read();      // add bytes one by one
+    }
+  
+    if (pathLength != path.length()) {   // check length for error
+      return;                             // skip rest of function
+    }
+    
+    path += "-" + String(NodeID);
     unsigned long recvTime = (unsigned long)delayTime[0]      |
                              (unsigned long)delayTime[1] << 8 |
                              (unsigned long)delayTime[2] << 16|
-                             (unsigned long)delayTime[3] << 24;
-                             
+                             (unsigned long)delayTime[3] << 24;                             
     double lastDelay = (double)(lastTime - recvTime)/1000;
 
-  if (recipient == nodeID && nextNode == nodeID) {
+  if (recipient == NodeID && nextNode == NodeID) {
     Serial.println();
     Serial.println("Response message");
     Serial.println("------------------------");
@@ -140,7 +154,8 @@ void onReceive(int packetSize) {
     Serial.println("Send to NodeID: " + String(recipient, DEC));
     Serial.println("Message ID: " + String(incomingMsgId));
     Serial.println("Sensor Data: " + String(incomingData));
-    Serial.println("Send and receive time: " + String(lastDelay)+" Sec.");
+    Serial.println("Send and receive time: " + String(lastDelay)+" Sec.");   
+    Serial.println("Path traveled :"+String(path));
     Serial.println();
                               // skip rest of function
   }
