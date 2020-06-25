@@ -11,6 +11,7 @@ byte Dst = 0;      // destination to send to
 byte NextHop = 0;
 byte sensor;
 byte delayTime[4];
+String path;
 
 void setup() {
   Serial.begin(9600);                   // initialize serial
@@ -18,8 +19,7 @@ void setup() {
   Serial.println("|-------------|");
   Serial.println("| LoRa Sensor |");
   Serial.println("|-------------|");
-
-  // override the default CS, reset, and IRQ pins (optional)
+  
   LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, RQ pin
 
   if (!LoRa.begin(433E6)) {             // initialize ratio at 915 MHz
@@ -43,9 +43,9 @@ void loop() {
     byte SetNextHop;
  }  Set_tabel[4];
 
-  Set_tabel Tabel={{1,3},
+  Set_tabel Tabel={{1,4},
                    {2,4},
-                   {3,3},
+                   {3,4},
                    {4,4}};
 
 void search(byte Dst) {
@@ -56,7 +56,8 @@ void search(byte Dst) {
   }
   return 0;
 }
-void sendMessage(byte sensor, byte msgId, byte Src, byte Dst, byte delayTime[]) {
+
+void sendMessage(byte sensor, byte msgId, byte Src, byte Dst, byte delayTime[], String path) {
   
   LoRa.beginPacket();            // start packet
   LoRa.write(Src);              // add destination address
@@ -68,6 +69,8 @@ void sendMessage(byte sensor, byte msgId, byte Src, byte Dst, byte delayTime[]) 
   LoRa.write(delayTime[1]);
   LoRa.write(delayTime[2]);
   LoRa.write(delayTime[3]);
+  LoRa.write(path.length());        // add payload length
+  LoRa.print(path);
   LoRa.endPacket();                     // finish packet and send it
 }
 
@@ -84,21 +87,33 @@ void onReceive(int packetSize) {
   delayTime[1] = LoRa.read();
   delayTime[2] = LoRa.read();
   delayTime[3] = LoRa.read();
+  byte pathLength = LoRa.read();    // incoming msg length
+  String path = "";                 // payload of packet
+  
+  while (LoRa.available()) {            // can't use readString() in callback, so
+      path += (char)LoRa.read();      // add bytes one by one
+    }
+  
+  if (pathLength != path.length()) {   // check length for error
+      return;                             // skip rest of function
+    }
+    
+  path += "-" + String(NodeID);
   sensor = random(25,90); 
     
-    if (recipient == NodeID && nextNode == NodeID) { // jika penerima paket request adalah node ini
+  if (recipient == NodeID && nextNode == NodeID) { // jika penerima paket request adalah node ini
     //    kirim paket balasan
     Serial.println("\nRequest from NodeID : " + String(sender, DEC));
     Serial.println("---------------------");
     Serial.println("\nResponse message");
     Serial.println("Receive from NodeID : " + String(recipient, DEC));
     Serial.println("Send to NodeID : " + String(sender, DEC));
-    Serial.println("Next Node : " + String(NextHop, DEC));
     Serial.println("Message ID : "+String(incomingMsgId));
-    Serial.println("Sensor data : "+String(sensor));
+    Serial.println("Sensor data : "+String(sensor));   
+    Serial.println("Path traveled :"+String(path));
     Serial.println("");
     search(sender); // method ini mengeset nexthop menuju tujuan
-    sendMessage(sensor, incomingMsgId, NodeID, sender, delayTime);
+    sendMessage(sensor, incomingMsgId, NodeID, sender, delayTime, path);
     }       
       
    else {
