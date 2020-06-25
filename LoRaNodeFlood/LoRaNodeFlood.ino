@@ -146,6 +146,8 @@ void onReceive(int packetSize) {
   Serial.print("suhu: ");
   Serial.print(suhu);
   Serial.println(" C");
+  
+  delay(20);
   sendMessage(sender, msgId, waktu, suhu, incomingMsgId, path);
 //  sendMessage(sender, msgId, suhu, incomingMsgId);
   Serial.println("Sending response ...");

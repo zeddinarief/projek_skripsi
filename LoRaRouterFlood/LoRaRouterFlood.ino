@@ -12,9 +12,9 @@ const int irqPin = 2;         // change for your board; must be a hardware inter
 
 //String outgoing;              // outgoing message
 
-byte localAddress = 3;     // address of this device
+//byte localAddress = 3;     // address of this device
 //byte localAddress = 4;     // address of this device
-//byte localAddress = 5;     // address of this device
+byte localAddress = 5;     // address of this device
 
 byte currentMsgType;
 long lastPop = 0;        // last send time
@@ -69,7 +69,7 @@ void loop() {
 }
 
 //forward request
-void forwardRequest(int recipient, byte sender, byte msgId, byte msgType, byte sendTime[], String path) {
+void forwardRequest(byte recipient, byte sender, byte msgId, byte msgType, byte sendTime[], String path) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(recipient);              // add destination address
   LoRa.write(sender);                 // add sender address
@@ -86,7 +86,7 @@ void forwardRequest(int recipient, byte sender, byte msgId, byte msgType, byte s
 }
 
 //forward reply
-void forwardReply(int recipient, byte sender, byte msgId, byte msgType, byte sendTime[], byte sensor, byte reqId, String path) {
+void forwardReply(byte recipient, byte sender, byte msgId, byte msgType, byte sendTime[], byte sensor, byte reqId, String path) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(recipient);              // add destination address
   LoRa.write(sender);                 // add sender address
@@ -138,6 +138,9 @@ void onReceive(int packetSize) {
   path += "-" + String(localAddress);         // add path local address
 
   // if the recipient isn't this device or broadcast,
+//  Serial.println("SenderID-ReceiverID-MessageID");
+//  show();
+  Serial.println("Receive packet");
   if (recipient != localAddress) {
     if(search(sender, recipient, incomingMsgId)){       // jika ada di record
       Serial.print("Message id : ");
@@ -163,9 +166,9 @@ void onReceive(int packetSize) {
     Serial.println(incomingMsgId);
     Serial.print("from: ");
     Serial.println(sender);
-    Serial.print("coba size paket: ");
-    Serial.println(packetSize);
-    Serial.println(path);
+//    Serial.print("coba size paket: ");
+//    Serial.println(packetSize);
+//    Serial.println(path);
     push(sender, recipient, incomingMsgId);
   } 
   
