@@ -23,7 +23,6 @@ int interval = 10000;          // interval between delete old record
 typedef struct               // untuk menyimpan record paket yang pernah lewat
  {
      byte currentSender;
-     byte currentRecipient;
      byte currentMsgId;
  }  record_type;
 
@@ -142,7 +141,7 @@ void onReceive(int packetSize) {
 //  show();
   Serial.println("Receive packet");
   if (recipient != localAddress) {
-    if(search(sender, recipient, incomingMsgId)){       // jika ada di record
+    if(search(sender, incomingMsgId)){       // jika ada di record
       Serial.print("Message id : ");
       Serial.print(incomingMsgId);
       Serial.println(" has been received before");
@@ -169,7 +168,7 @@ void onReceive(int packetSize) {
 //    Serial.print("coba size paket: ");
 //    Serial.println(packetSize);
 //    Serial.println(path);
-    push(sender, recipient, incomingMsgId);
+    push(sender, incomingMsgId);
   } 
   
   Serial.println();
@@ -178,41 +177,39 @@ void onReceive(int packetSize) {
 void pop() {
   for(int x=0; x<8; x++) {  
     if(x < 7){
-      if(record[x].currentSender == 0 && record[x].currentRecipient == 0){
+      if(record[x].currentSender == 0){
         return;
       }
       record[x].currentSender = record[x+1].currentSender;
-      record[x].currentRecipient = record[x+1].currentRecipient;
       record[x].currentMsgId = record[x+1].currentMsgId;
     } else {
       record[x].currentSender = 0;
-      record[x].currentRecipient = 0;
       record[x].currentMsgId = 0;
     }
   }
 }
 
-void push(byte senderId, byte recipientId, byte packetId) {
+void push(byte senderId, byte packetId) {
   for(int x=0; x<8; x++) {  
     if(x < 7){
-      if(record[x].currentSender == 0 && record[x].currentRecipient == 0){
-        record[x] = (record_type) {senderId,recipientId,packetId};
+      if(record[x].currentSender == 0){
+        record[x] = (record_type) {senderId,packetId};
         return;
       }
     } else {
-      if(record[x].currentSender == 0 && record[x].currentRecipient == 0){
-        record[x] = (record_type) {senderId,recipientId,packetId};
+      if(record[x].currentSender == 0){
+        record[x] = (record_type) {senderId,packetId};
       } else {
         pop();
-        record[x] = (record_type) {senderId,recipientId,packetId};
+        record[x] = (record_type) {senderId,packetId};
       }
     }
   }
 }
 
-bool search(byte senderId, byte recipientId, byte packetId) {
+bool search(byte senderId, byte packetId) {
   for(int x=0; x<8; x++) {  
-    if(record[x].currentSender == senderId && record[x].currentRecipient == recipientId && record[x].currentMsgId == packetId){
+    if(record[x].currentSender == senderId && record[x].currentMsgId == packetId){
       return 1;
     }
   }
@@ -222,8 +219,6 @@ bool search(byte senderId, byte recipientId, byte packetId) {
 void show() {
   for(int x=0; x<8; x++) {  
     Serial.print(record[x].currentSender);
-    Serial.print("-");
-    Serial.print(record[x].currentRecipient);
     Serial.print("-");
     Serial.println(record[x].currentMsgId);
   }

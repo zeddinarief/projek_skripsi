@@ -33,7 +33,6 @@ int interval = 10000;          // interval between delete old record
 typedef struct              // untuk menyimpan record paket yang pernah lewat
  {
      byte currentSender;
-     byte currentRecipient;
      byte currentMsgId;
  }  record_type;
 
@@ -74,7 +73,7 @@ void loop() {
   onReceive(LoRa.parsePacket());
 }
 
-void sendMessage(byte dest, byte id, byte sendTime[], byte sensor, byte reqId, String path) {
+void sendMessage(byte dest, byte id, byte sendTime[], byte sensor, byte reqId) {
 //void sendMessage(byte dest, byte id, byte sensor, byte reqId) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(dest);              // add destination address
@@ -87,8 +86,10 @@ void sendMessage(byte dest, byte id, byte sendTime[], byte sensor, byte reqId, S
   LoRa.write(sendTime[1]);          // add sendTime
   LoRa.write(sendTime[2]);          // add sendTime
   LoRa.write(sendTime[3]);          // add sendTime
-  LoRa.write(path.length());        // add payload length
-  LoRa.print(path);                 // add payload
+  //  path info
+  String path = String(localAddress);
+  LoRa.write(path.length());        // add path length
+  LoRa.print(path);                 // add path
   LoRa.endPacket();                     // finish packet and send it
   msgId++;
 }
@@ -134,7 +135,7 @@ void onReceive(int packetSize) {
     return;                             // skip rest of function
   }
 
-  if(search(sender, recipient, incomingMsgId)){       // jika ada di record
+  if(search(sender, incomingMsgId)){       // jika ada di record
     Serial.print("This message id : ");
     Serial.print(incomingMsgId);
     Serial.println(" is not for me.");
@@ -148,7 +149,7 @@ void onReceive(int packetSize) {
   Serial.println(" C");
   
   delay(20);
-  sendMessage(sender, msgId, waktu, suhu, incomingMsgId, path);
+  sendMessage(sender, msgId, waktu, suhu, incomingMsgId);
 //  sendMessage(sender, msgId, suhu, incomingMsgId);
   Serial.println("Sending response ...");
 //  LoRa.receive();
@@ -161,47 +162,45 @@ void onReceive(int packetSize) {
   Serial.println("Snr: " + String(LoRa.packetSnr()));
   Serial.println(path);
   Serial.println();
-  push(sender, recipient, incomingMsgId);
+  push(sender, incomingMsgId);
 }
 
 void pop() {
   for(int x=0; x<8; x++) {  
     if(x < 7){      // index bukan yg terakhir
-      if(record[x].currentSender == 0 && record[x].currentRecipient == 0){
+      if(record[x].currentSender == 0){
         return;
       }
       record[x].currentSender = record[x+1].currentSender;
-      record[x].currentRecipient = record[x+1].currentRecipient;
       record[x].currentMsgId = record[x+1].currentMsgId;
     } else {
       record[x].currentSender = 0;
-      record[x].currentRecipient = 0;
       record[x].currentMsgId = 0;
     }
   }
 }
 
-void push(byte senderId, byte recipientId, byte packetId) {
+void push(byte senderId, byte packetId) {
   for(int x=0; x<8; x++) {  
     if(x < 7){
-      if(record[x].currentSender == 0 && record[x].currentRecipient == 0){
-        record[x] = (record_type) {senderId,recipientId,packetId};
+      if(record[x].currentSender == 0){
+        record[x] = (record_type) {senderId,packetId};
         return;
       }
     } else {
-      if(record[x].currentSender == 0 && record[x].currentRecipient == 0){
-        record[x] = (record_type) {senderId,recipientId,packetId};
+      if(record[x].currentSender == 0){
+        record[x] = (record_type) {senderId,packetId};
       } else {
         pop();
-        record[x] = (record_type) {senderId,recipientId,packetId};
+        record[x] = (record_type) {senderId,packetId};
       }
     }
   }
 }
 
-bool search(byte senderId, byte recipientId, byte packetId) {
+bool search(byte senderId, byte packetId) {
   for(int x=0; x<8; x++) {  
-    if(record[x].currentSender == senderId && record[x].currentRecipient == recipientId && record[x].currentMsgId == packetId){
+    if(record[x].currentSender == senderId && record[x].currentMsgId == packetId){
       return 1;
     }
   }
@@ -211,8 +210,6 @@ bool search(byte senderId, byte recipientId, byte packetId) {
 void show() {
   for(int x=0; x<8; x++) {  
     Serial.print(record[x].currentSender);
-    Serial.print("-");
-    Serial.print(record[x].currentRecipient);
     Serial.print("-");
     Serial.println(record[x].currentMsgId);
   }

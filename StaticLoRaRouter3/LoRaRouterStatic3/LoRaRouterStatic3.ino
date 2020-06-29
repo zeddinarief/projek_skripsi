@@ -5,6 +5,7 @@ const int csPin = 10;          // LoRa radio chip select
 const int resetPin = 9;       // LoRa radio reset
 const int irqPin = 2;         // change for your board; must be a hardware interrupt pin
 
+byte msgID = 1;            // count of outgoing messages
 byte NodeID = 4;                 // address of this device
 byte Dst = 0;                // destination to send to
 byte NextHop = 0;
@@ -57,7 +58,7 @@ void search(byte Dst) {
 
 }
 
-void sendMessage(byte sensor, byte msgId, byte Src, byte Dst, byte delayTime[], String path) {
+void sendMessage(byte sensor, byte Src, byte Dst, byte delayTime[]) {
   LoRa.beginPacket();                   // start packet
   LoRa.write(Src);              // add destination address
   LoRa.write(Dst);             // add sender address
@@ -68,10 +69,11 @@ void sendMessage(byte sensor, byte msgId, byte Src, byte Dst, byte delayTime[], 
   LoRa.write(delayTime[1]);
   LoRa.write(delayTime[2]);
   LoRa.write(delayTime[3]);
+  path = String (NodeID);
   LoRa.write(path.length());        // add payload length
   LoRa.print(path);
   LoRa.endPacket();                     // finish packet and send it
-
+  msgID++;                           // increment message ID
 }
 
 void ForwardMessage(byte data,byte msgId, byte Src, byte Dst, byte delayTime[], String path) {
@@ -126,7 +128,7 @@ void onReceive(int packetSize) {
     Serial.println("Path traveled :"+String(path));
     Serial.println("");
     search(sender); // method ini mengeset nexthop menuju tujuan
-    sendMessage(sensor,incomingMsgId, NodeID, sender, delayTime, path);
+    sendMessage(sensor, NodeID, sender, delayTime);
     }       
       
    else if(nextNode == NodeID) {
